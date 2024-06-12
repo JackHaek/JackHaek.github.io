@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- TITLE -->
+    <title>Jack Haek Portfolio</title>
+
+    <!-- FAVICON -->
+    <link rel="shortcut icon" href="./assets/favicon.ico" type="image/x-icon" />
+
+    <!-- FONT AWOESOME -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- CUSTOM CSS LINK -->
+    <link rel="stylesheet" href="./assets/css/style.css" />
+
+    <!-- VANILLA JS LINK -->
+    <script defer src="./assets/js/script.js"></script>
+  </head>
+
+  <body>
+    <main>
+      <!--============================== SIDEBAR START ==============================-->
+      <aside class="sidebar" data-sidebar>
+        <div class="sidebar-info">
+          <!-- PROFILE IMAGE -->
+          <figure class="avatar-box">
+            <img src="./assets/images/Profile.png" alt="Jack Haek" width="80" />
+          </figure>
+
+          <div class="info-content">
+            <!-- NAME -->
+            <h1 class="name" title="Jack Haek">Jack Haek</h1>
+
+            <!-- POSITION -->
+            <p class="title">Software Engineer</p>
+            <!-- SOCIAL ICONS -->
+            <ul class="social-list">
+              <!--<li class="social-item">
+                <a href="#" class="social-link">
+                  <i class="fa-brands fa-facebook" title="Facebook"></i>
+                </a>
+              </li>-->
+
+              <!--<li class="social-item">
+                <a href="#" class="social-link"> <i class="fa-brands fa-x-twitter"></i> </a>
+              </li>-->
+
+              <!--<li class="social-item">
+                <a href="#" class="social-link"> <i class="fa-brands fa-instagram"></i> </a>
+              </li>-->
+              <li class="social-item">
+                <a href="https://github.com/JackHaek" target="_blank" class="social-link"> <i class="fa-brands fa-github"></i> </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- SMALL SCREEN SHOW CONTACTS BUTTON -->
+          <button class="info_more-btn" data-sidebar-btn>
+            <span>Show Contacts</span>
+
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-info_more">
+          <div class="separator"></div>
+
+          <ul class="contacts-list">
+            <!-- EMAIL -->
+            <li class="contact-item">
+              <div class="icon-box">
+                <i class="fa-regular fa-envelope"></i>
+              </div>
+
+              <div class="contact-info">
+                <p class="contact-title">Email</p>
+                <a href="mailto:jackjhaek@gmail.com" class="contact-link">jackjhaek@gmail.com</a>
+              </div>
+            </li>
+
+            <!-- PHONE NUMBER -->
+            <li class="contact-item">
+              <div class="icon-box">
+                <i class="fa-solid fa-phone"></i>
+              </div>
+
+              <div class="contact-info">
+                <p class="contact-title">Phone</p>
+                <a href="tel:+16022282113" class="contact-link">+1 (602) 228-2113</a>
+              </div>
+            </li>
+
+            <!-- ADDRESS -->
+            <li class="contact-item">
+              <div class="icon-box">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+
+              <div class="contact-info">
+                <p class="contact-title">Location</p>
+                <address>Tucson, Arizona, USA</address>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </aside>
+      <!--============================== SIDEBAR END ==============================-->
+
+      <!-- MAIN CONTENT-->
+      <div class="main-content">
+        <!--============================== NAVBAR START ==============================-->
+        <nav class="navbar">
+          <!-- NAV LIST -->
+          <ul class="navbar-list">
+            <!-- NAV ITEM -->
+            <li class="navbar-item">
+              <button class="navbar-link active" data-nav-link>About</button>
+            </li>
+            <!-- NAV ITEM -->
+            <li class="navbar-item">
+              <button class="navbar-link" data-nav-link>Resume</button>
+            </li>
+            <!-- NAV ITEM -->
+            <li class="navbar-item">
+              <button class="navbar-link" data-nav-link>Portfolio</button>
+            </li>
+            <!-- NAV ITEM -->
+            <li class="navbar-item">
+              <button class="navbar-link" data-nav-link>Contact</button>
+            </li>
+          </ul>
+        </nav>
+        <!--============================== NAVBAR END ==============================-->
+
+        <!--============================== ABOUT START ==============================-->
+        <article class="about active" data-page="about">
+          <!-- TITLE -->
+          <header>
+            <h2 class="h2 article-title">About me</h2>
+          </header>
+
+          <section class="about-text">
+            <!-- SHORT BIO -->
+            <p>
+              I'm a software engineer based in Tucson, Arizona, with a passion for building robust 
+              full-stack applications. My background blends backend development with problem solving
+              strategies, allowing me to craft innovative solutions. Currently, I leverage these 
+              skills at GEOST, where I'm constantly learning and contributing to exciting projects.
+            </p>
+
+            <p>
+              As a software engineering intern at GEOST, I'm passionate about creating full-stack applications
+              that aim to provide functionality to physical products. My long-term goal is to 
+              become a leading figure on a software development team designing and creating deployable
+              software to users. I believe my skills can significantly contribute to developing innovative 
+              solutions to accomplish this goal. In the coming years, I strive to hone my expertise 
+              in machine learning algorithms and stay updated on cutting-edge development frameworks.
+            </p>
+            <!-- SHORT BIO -->
+
+            <!-- DOWNLOAD CV LINK -->
+            <a href="./assets/images/Jack Haek Resume 2024.pdf" download class="btn" target="_blank">
+              <i class="fa-solid fa-download"></i> <span>Download Resume</span>
+            </a>
+          </section>
+
+          <!--============================== SERVICES ==============================-->
+          <section class="service">
+            <!-- <h3 class="h3 service-title">What i'm doing</h3> -->
+            <!-- TITLE -->
+            <h3 class="h3 service-title">Core Skills</h3>
+
+            <!-- SERVICE LIST -->
+            <ul class="service-list">
+              <!-- SERVICE ITEM -->
+              <li class="service-item">
+                <!-- ICON -->
+                <div class="service-icon-box">
+                  <img
+                    src="./assets/icons/icon-design.svg
+                "
+                    alt="design icon"
+                    width="40"
+                  />
+                </div>
+
+                <div class="service-content-box">
+                  <!-- NAME -->
+                  <h4 class="h4 service-item-title">Backend Development</h4>
+
+                  <!-- DESCRIPTION -->
+                  <p class="service-item-text">
+                    Strong focus on designing secure systems, and ensuring smooth data flow.
+                  </p>
+                </div>
+              </li>
+
+              <!-- SERVICE ITEM -->
+              <li class="service-item">
+                <!-- ICON -->
+                <div class="service-icon-box">
+                  <img src="./assets/icons/icon-dev.svg" alt="Web development icon" width="40" />
+                </div>
+
+                <div class="service-content-box">
+                  <!-- NAME -->
+                  <h4 class="h4 service-item-title">Machine Learning Algorithms</h4>
+
+                  <!-- DESCRIPTION -->
+                  <p class="service-item-text">
+                    Focus on supervised learning algorithms. More details can be found in the portfolio section.
+                  </p>
+                </div>
+              </li>
+
+              <!-- SERVICE ITEM -->
+              <li class="service-item">
+                <!-- ICON -->
+                <div class="service-icon-box">
+                  <img src="./assets/icons/icon-app.svg" alt="mobile app icon" width="40" />
+                </div>
+
+                <div class="service-content-box">
+                  <!-- NAME -->
+                  <h4 class="h4 service-item-title">Test Engineering</h4>
+
+                  <!-- DESCRIPTION -->
+                  <p class="service-item-text">
+                    Professional experience in developing tests and test documentation for production software
+                  </p>
+                </div>
+              </li>
+
+              <!-- SERVICE ITEM -->
+              <li class="service-item">
+                <!-- ICON -->
+                <div class="service-icon-box">
+                  <img src="./assets/icons/icon-photo.svg" alt="camera icon" width="40" />
+                </div>
+
+                <div class="service-content-box">
+                  <!-- NAME -->
+                  <h4 class="h4 service-item-title">DevOps</h4>
+
+                  <!-- DESCRIPTION -->
+                  <p class="service-item-text">
+                    Experience creating CI/CD pipelines and deploying applications to cloud services.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </section>
+          <!--============================== SERVICES ==============================-->
+
+          <!--============================== TESTIMONIALS START ==============================-->
+          <section class="testimonials">
+            <!-- TITLE -->
+            <h3 class="h3 testimonials-title">Current Projects</h3>
+
+            <!-- TESTIMONAL LIST -->
+            <!-- TOOK OUT has-scrollbar from the classes-->
+            <ul class="testimonials-list">
+              <!-- TESTIMONAL ITEM -->
+              <li class="testimonials-item">
+                <div class="content-card" data-testimonials-item>
+                  <!-- IMAGE -->
+                  <figure class="testimonials-avatar-box">
+                    <img
+                      src="./assets/images/3D Printer Thumbnail.png"
+                      alt="3D Printer Thumbnail"
+                      width="80"
+                      height="80"
+                      data-testimonials-avatar
+                    />
+                  </figure>
+
+                  <!-- NAME -->
+                  <h4 class="h4 testimonials-item-title" data-testimonials-title>3D Printer Design</h4>
+
+                  <!-- REVIEW TEXT -->
+                  <div class="testimonials-text" data-testimonials-text>
+                    <p>
+                      A hybrid machine that can both 3D print and CNC machine (CNC) would be a versatile tool for makers and hobbyists.
+                      The project is currently in the design phase, with the goal of creating a machine that can be easily assembled and used by the average user.
+                    </p>
+                  </div>
+                </div>
+              </li>
+
+              <!-- TESTIMONAL ITEM -->
+              <li class="testimonials-item">
+                <div class="content-card" data-testimonials-item>
+                  <!-- IMAGE -->
+                  <figure class="testimonials-avatar-box">
+                    <img
+                      src="./assets/images/Disaster Risk Thumbnail.png"
+                      alt="Jessica miller"
+                      width="80"
+                      height="80"
+                      data-testimonials-avatar
+                    />
+                  </figure>
+
+                  <!-- Name -->
+                  <h4 class="h4 testimonials-item-title" data-testimonials-title>Disaster Risk Monitoring</h4>
+
+                  <!-- REVIEW TEXT -->
+                  <div class="testimonials-text" data-testimonials-text>
+                    <p>
+                      Disaster Risk Monitoring using Satellite Imagery is a side project inspired by an NVIDIA workshop with the goal build and deploy a deep learning model to automate the detection of flood events using satellite imagery. 
+                      This could be applied to lower the cost, improve the efficiency, and significantly enhance the effectiveness of various natural disaster management use cases.
+                    </p>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- TESTIMONIAL MODAL -->
+          <div class="modal-container" data-modal-container>
+            <div class="overlay" data-overlay></div>
+
+            <section class="testimonials-modal">
+              <!-- CLOSE ICON -->
+              <button class="modal-close-btn" data-modal-close-btn>
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+
+              <div class="modal-img-wrapper">
+                <!-- REVIEWER IMAGE -->
+                <figure class="modal-avatar-box">
+                  <img
+                    src="./assets/images/user-1.jpg"
+                    alt="Daniel lewis"
+                    width="80"
+                    data-modal-img
+                  />
+                </figure>
+
+                <!-- QUOTE ICON -->
+                <img src="./assets/icons/icon-quote.svg" alt="quote icon" />
+              </div>
+
+              <div class="modal-content">
+                <!-- NAME -->
+                <h4 class="h3 modal-title" data-modal-title>Daniel lewis</h4>
+
+                <!-- DATE -->
+                <!-- BLOG DATE -->
+                <!--<time datetime="2021-06-14">13 January, 2024</time>-->
+
+                <!-- REVIEW TEXT -->
+                <div data-modal-text>
+                  <p>
+                    Thomas was hired to create a corporate identity. We were very pleased with the
+                    work done. She has a lot of experience and is very concerned about the needs of
+                    client. Lorem ipsum dolor sit amet, ullamcous cididt consectetur adipiscing
+                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+          <!--============================== TESTIMONIALS END ==============================-->
+
+          <!--============================== CLIENTS START ==============================-->
+      
+          <!--============================== CLIENTS END ==============================-->
+        </article>
+        <!--============================== ABOUT END ==============================-->
+
+        <!--============================== RESUME START ==============================-->
+        <article class="resume" data-page="resume">
+          <!-- TITLE -->
+          <header>
+            <h2 class="h2 article-title">Resume</h2>
+          </header>
+
+          <section class="timeline">
+            <div class="title-wrapper">
+              <!-- ICON -->
+              <div class="icon-box">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+
+              <!-- TITLE -->
+              <h3 class="h3">Education</h3>
+            </div>
+
+            <ol class="timeline-list">
+              <li class="timeline-item">
+                <!-- INSTITUTE NAME -->
+                <h4 class="h4 timeline-item-title">Milwaukee School of Engineering - B.S. Computer Science</h4>
+
+                <!-- YEAR -->
+                <span>Graduated May 2024</span>
+
+                <!-- SHORT DESCRIPTION -->
+                <p class="timeline-text">
+                  Courses in Artificial Intelligence and Machine Learning. 
+                  Fred Loock Scholarship recipient. 
+                  University Scholars Honors Program participant.
+                </p>
+              </li>
+            </ol>
+          </section>
+
+          <section class="timeline">
+            <div class="title-wrapper">
+              <!-- ICON -->
+              <div class="icon-box">
+                <i class="fa-solid fa-book-open-reader"></i>
+              </div>
+
+              <!-- TITLE -->
+              <h3 class="h3">Experience</h3>
+            </div>
+
+            <ol class="timeline-list">
+              <li class="timeline-item">
+                <!-- INSTITUTE NAME -->
+                <h4 class="h4 timeline-item-title">GEOST - Enterprise Software Engineering Intern</h4>
+
+                <!-- YEAR -->
+                <span>March 2023 - August 2023</span>
+
+                <!-- SHORT DESCRIPTION -->
+                <p class="timeline-text">
+                  Part-time role focusing on developing and testing backend software for mission systems.
+                </p>
+              </li>
+
+              <li class="timeline-item">
+                <!-- INSTITUTE NAME -->
+                <h4 class="h4 timeline-item-title">RTM Engineering - Software Engineering Intern</h4>
+
+                <!-- YEAR -->
+                <span>Summer 2021</span>
+
+                <!-- SHORT DESCRIPTION -->
+                <p class="timeline-text">
+                  Full-time role including developing and testing internal software for the company.
+                  This role required the use of databases and working with a team of interdiciplinary engineers.
+                </p>
+              </li>
+
+              <li class="timeline-item">
+                <!-- INSTITUTE NAME -->
+                <h4 class="h4 timeline-item-title">Direct Supply - Software Engineering Intern</h4>
+
+                <!-- YEAR -->
+                <span>2020 - 2021 Academic Year</span>
+
+                <!-- SHORT DESCRIPTION -->
+                <p class="timeline-text">
+                  Part-time role including developing and testing consumer level software that is utilized around the United States.
+                </p>
+              </li>
+            </ol>
+          </section>
+
+          <!-- SKILLS -->
+          <section class="skill">
+            <!-- TITLE -->
+            <h3 class="h3 skills-title">My skills</h3>
+
+            <!-- SKILL LIST -->
+            <ul class="skills-list">
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/python.png" alt="Python" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Python</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/C++.png" alt="C++" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">C++</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/CUDA.png" alt="CUDA" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">CUDA</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/javascript.png" alt="JavaScript" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">JavaScript</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/astro.png" alt="Astro" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Astro</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/unix.png" alt="Unix" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Unix</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/java.png" alt="Java" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Java</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/r.png" alt="R" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">R</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/git.png" alt="Git" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Git</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/sass.png" alt="Sass" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">Sass</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/c-sharp.png" alt="C#" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">C#</h5>
+              </li>
+
+              <!-- SKILL ITEM -->
+              <li class="skills-item">
+                <!-- SKILL ICON -->
+                <img src="./assets/icons/tensorflow.png" alt="TensorFlow" />
+                <!-- SKILL NAME -->
+                <h5 class="h5">TensorFlow</h5>
+              </li>
+            </ul>
+          </section>
+        </article>
+        <!--============================== RESUME END ==============================-->
+
+        <!--============================== PORTFOLIO START ==============================-->
+        <article class="portfolio" data-page="portfolio">
+          <!-- TITLE -->
+          <header>
+            <h2 class="h2 article-title">Portfolio</h2>
+          </header>
+
+          <section class="projects">
+            <!-- TAB ITEMS -->
+            <ul class="filter-list">
+              <!-- TAB ITEM -->
+              <li class="filter-item">
+                <button class="active" data-filter-btn>All</button>
+              </li>
+
+              <!-- TAB ITEM -->
+              <li class="filter-item">
+                <button data-filter-btn>Software Development</button>
+              </li>
+
+              <!-- TAB ITEM -->
+              <li class="filter-item">
+                <button data-filter-btn>Machine Learning</button>
+              </li>
+
+              <!-- TAB ITEM -->
+              <li class="filter-item">
+                <button data-filter-btn>DevOps</button>
+              </li>
+            </ul>
+
+            <div class="filter-select-box">
+              <!-- SMALL SCREEN FOR TAB ITEMS -->
+              <button class="filter-select" data-select>
+                <span class="select-value" data-selecct-value>Select category</span>
+
+                <span class="select-icon">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </span>
+              </button>
+
+              <ul class="select-list">
+                <!-- TAB ITEM -->
+                <li class="select-item">
+                  <button data-select-item>All</button>
+                </li>
+
+                <!-- TAB ITEM -->
+                <li class="select-item">
+                  <button data-select-item>Software Development</button>
+                </li>
+
+                <!-- TAB ITEM -->
+                <li class="select-item">
+                  <button data-select-item>Machine Learning</button>
+                </li>
+
+                <!-- TAB ITEM -->
+                <li class="select-item">
+                  <button data-select-item>DevOps</button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- PORTFOLIO ITEMS -->
+            <ul class="project-list">
+              <!-- PORTFOLIO ITEM -->
+              <li class="project-item active" data-filter-item data-category="software development">
+                <a href="https://github.com/JackHaek/FFT/blob/main/myfft.ipynb" target="_blank">
+                  <figure class="project-img">
+                    <!-- SEE DETAILS ICON -->
+                    <div class="project-item-icon-box">
+                      <i class="fa-solid fa-arrow-up-long"></i>
+                    </div>
+
+                    <!-- PORTFOLIO IMAGE -->
+                    <img src="./assets/images/FFT Project.png" alt="FFT Exploration" loading="lazy" />
+                  </figure>
+
+                  <!-- PORTFOLIO TITLE -->
+                  <h3 class="project-title">FFT Exploration</h3>
+
+                  <!-- PORTFOLIO CATEGORY -->
+                  <p class="project-category">Software Development</p>
+                </a>
+              </li>
+
+              <!-- PORTFOLIO ITEM -->
+              <li class="project-item active" data-filter-item data-category="machine learning">
+                <a target="_blank" href="https://github.com/JackHaek/Neural-Audio-Decorrelation">
+                  <figure class="project-img">
+                    <!-- SEE DETAILS ICON -->
+                    <div class="project-item-icon-box">
+                      <i class="fa-solid fa-arrow-up-long"></i>
+                    </div>
+
+                    <!-- PORTFOLIO IMAGE -->
+                    <img src="./assets/images/Neural Audio Decorrelation Thumbnail.png" alt="Nero Audio Decorrelation" loading="lazy" />
+                  </figure>
+
+                  <!-- PORTFOLIO TITLE -->
+                  <h3 class="project-title">Neural Audio Decorrelation</h3>
+
+                  <!-- PORTFOLIO CATEGORY -->
+                  <p class="project-category">Machine Learning</p>
+                </a>
+              </li>
+            </ul>
+          </section>
+        </article>
+        <!--============================== PORTFOLIO START ==============================-->
+
+        <!--============================== BLOG START ==============================-->
+        <article class="blog" data-page="blog">
+          <!-- TITLE -->
+          <header>
+            <h2 class="h2 article-title">Technical Resources</h2>
+          </header>
+
+          <section class="blog-posts">
+            <!-- BLOG LIST -->
+            <ul class="blog-posts-list">
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img
+                      src="./assets/images/blog-1.jpg"
+                      alt="Design conferences in 2022"
+                      loading="lazy"
+                    />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2024-02-23">Feb 23, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">Design conferences in 2022</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Veritatis et quasi architecto beatae vitae dicta sunt, explicabo.
+                    </p>
+                  </div>
+                </a>
+              </li>
+
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img
+                      src="./assets/images/blog-2.jpg"
+                      alt="Best fonts every designer"
+                      loading="lazy"
+                    />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2024-02-08">Feb 8, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">Best fonts every designer</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Sed ut perspiciatis, nam libero tempore, cum soluta nobis est eligendi.
+                    </p>
+                  </div>
+                </a>
+              </li>
+
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img src="./assets/images/blog-3.jpg" alt="Design digest #80" loading="lazy" />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2024-03-23">Mar 23, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">Design digest #80</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Excepteur sint occaecat cupidatat no proident, quis nostrum exercitationem
+                      ullam corporis suscipit.
+                    </p>
+                  </div>
+                </a>
+              </li>
+
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img
+                      src="./assets/images/blog-4.jpg"
+                      alt="UI interactions of the week"
+                      loading="lazy"
+                    />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2024-03-08">Mar 08, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">UI interactions of the week</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Enim ad minim veniam, consectetur adipiscing elit, quis nostrud exercitation
+                      ullamco laboris nisi.
+                    </p>
+                  </div>
+                </a>
+              </li>
+
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img
+                      src="./assets/images/blog-5.jpg"
+                      alt="The forgotten art of spacing"
+                      loading="lazy"
+                    />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2024-01-23">Jan 23, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">The forgotten art of spacing</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Maxime placeat, sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                  </div>
+                </a>
+              </li>
+
+              <!-- BLOG ITEM -->
+              <li class="blog-post-item">
+                <a href="#">
+                  <!-- BLOG IMAGE -->
+                  <figure class="blog-banner-box">
+                    <img src="./assets/images/blog-6.jpg" alt="Design digest #79" loading="lazy" />
+                  </figure>
+
+                  <div class="blog-content">
+                    <div class="blog-meta">
+                      <!-- BLOG CATEGORY -->
+                      <p class="blog-category">Design</p>
+
+                      <span class="dot"></span>
+
+                      <!-- BLOG DATE -->
+                      <time datetime="2022-04-06">Apr 06, 2024</time>
+                    </div>
+
+                    <!-- BLOG TITLE -->
+                    <h3 class="h3 blog-item-title">Design digest #79</h3>
+
+                    <!-- BLOG SHORT DESCRIPTION -->
+                    <p class="blog-text">
+                      Optio cumque nihil impedit uo minus quod maxime placeat, velit esse cillum.
+                    </p>
+                  </div>
+                </a>
+              </li>
+            </ul>
+          </section>
+        </article>
+        <!--============================== BLOG END ==============================-->
+
+        <!--============================== CONTACT START ==============================-->
+        <article class="contact" data-page="contact">
+          <!-- TITLE -->
+          <header>
+            <h2 class="h2 article-title">Contact</h2>
+          </header>
+
+          <!-- MAP -->
+          <section class="mapbox" data-mapbox>
+            <figure>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d108089.20485353173!2d-110.96620482794546!3d32.15602863523557!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86d665410b2ced2b%3A0x73c32d384d16c715!2sTucson%2C%20AZ%2C%20USA!5e0!3m2!1sen!2sbd!4v1718149276602!5m2!1sen!2sbd"
+                width="400"
+                height="300"
+                loading="lazy"
+              ></iframe>
+            </figure>
+          </section>
+
+          <section class="contact-form">
+            <!-- TITLE -->
+            <h3 class="h3 form-title">Contact Form</h3>
+
+            <!-- CONTACT FORM -->
+            <form action="#" class="form" data-form>
+              <div class="input-wrapper">
+                <!-- FULLNAME INPUT -->
+                <input
+                  type="text"
+                  name="fullname"
+                  class="form-input"
+                  placeholder="Full name"
+                  required
+                  data-form-input
+                />
+
+                <!-- EMAIL INPUT -->
+                <input
+                  type="email"
+                  name="email"
+                  class="form-input"
+                  placeholder="Email address"
+                  required
+                  data-form-input
+                />
+              </div>
+
+              <!-- MESSAGE INPUT -->
+              <textarea
+                name="message"
+                class="form-input"
+                placeholder="Your Message"
+                required
+                data-form-input
+              ></textarea>
+
+              <!-- FORM SUBMIT BUTTON -->
+              <button class="btn form-btn" type="submit" disabled data-form-btn>
+                <i class="fa-solid fa-paper-plane"></i> <span>Send Message</span>
+              </button>
+            </form>
+          </section>
+        </article>
+        <!--============================== CONTACT END ==============================-->
+      </div>
+    </main>
+  </body>
+</html>
