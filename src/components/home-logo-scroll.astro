@@ -1,77 +1,179 @@
-<section class="stats-bar">
-  <div class="stats-inner">
+---
+const logoModules = import.meta.glob<{ default: { src: string } }>(
+  '../assets/logos/*.png',
+  { eager: true }
+);
 
-    <div class="stat-item">
-      <span class="stat-label">LVC Latency</span>
-      <span class="stat-value">&lt;15ms</span>
+const logos = Object.entries(logoModules).map(([path, mod]) => ({
+  src: mod.default.src,
+  alt: path.split('/').pop()!.replace('.png', ''),
+}));
+---
+
+<section class="logo-scroll">
+  <div class="logo-viewport" id="logo-viewport">
+    <div class="logo-track" id="logo-track">
+      {logos.map(({ src, alt }) => (
+        <div class="logo-item">
+          <img src={src} alt={alt} draggable="false" />
+        </div>
+      ))}
+      {logos.map(({ src, alt }) => (
+        <div class="logo-item" aria-hidden="true">
+          <img src={src} alt="" draggable="false" />
+        </div>
+      ))}
     </div>
-
-    <div class="stat-item">
-      <span class="stat-label">Cloud Scale</span>
-      <span class="stat-value">K8S_READY</span>
-    </div>
-
-    <div class="stat-item">
-      <span class="stat-label">Live Sync</span>
-      <span class="stat-value">FLIGHT_READY</span>
-    </div>
-
-    <div class="stat-item">
-      <span class="stat-label">Sim Stability</span>
-      <span class="stat-value">99.998%</span>
-    </div>
-
   </div>
 </section>
 
 <style>
-  .stats-bar {
+  .logo-scroll {
     background: var(--surface-container-lowest);
-    padding: var(--space-12) var(--space-6);
+    padding: var(--space-12) 0;
   }
 
-  .stats-inner {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-6);
-    max-width: 1280px;
-    margin: 0 auto;
+  .logo-viewport {
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
   }
 
-  .stat-item {
+  .logo-track {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    border-left: 2px solid rgba(0, 247, 247, 0.2);
-    padding-left: 26px;
+    align-items: center;
+    gap: 80px;
+    padding: 0 40px;
+    width: max-content;
+    will-change: transform;
   }
 
-  .stat-label {
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    font-weight: 400;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #839493;
+  .logo-item {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .stat-value {
-    font-family: var(--font-display);
-    font-size: 1.875rem;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--primary-fixed-dim);
+  .logo-item img {
+    height: 72px;
+    width: auto;
+    user-select: none;
+    pointer-events: none;
+    filter: grayscale(1) brightness(0.3);
+    opacity: 0.55;
+    transition: filter 0.4s ease, opacity 0.4s ease;
   }
 
-  @media (max-width: 700px) {
-    .stats-inner {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  .logo-item.logo--active img {
+    filter: none;
+    opacity: 1;
   }
 
-  @media (max-width: 400px) {
-    .stats-inner {
-      grid-template-columns: 1fr;
+  @media (prefers-reduced-motion: reduce) {
+    .logo-item img {
+      filter: none;
+      opacity: 0.8;
     }
   }
 </style>
+
+<script>
+  const viewport = document.getElementById('logo-viewport')!;
+  const track    = document.getElementById('logo-track')!;
+  const items    = [...track.querySelectorAll<HTMLElement>('.logo-item')];
+
+  const SPEED         = 1.2;  // max px per frame
+  const PAUSE_FRAMES  = 55;   // ~0.9 s at 60 fps
+  const CENTER_ZONE   = 55;   // px — trigger colour
+  const PAUSE_ZONE    = 28;   // px — trigger stop
+  const SLOWDOWN_ZONE = 140;  // px — begin decelerating
+  const EASE          = 0.07; // lerp factor (higher = snappier)
+
+  // Cache each item's centre X within the track — static, computed once
+  const centers = items.map(el => ({
+    el,
+    cx: el.offsetLeft + el.offsetWidth / 2,
+  }));
+
+  let pos          = 0;
+  let currentSpeed = 0;
+  let targetSpeed  = SPEED;
+  let countdown    = 0;
+  const paused     = new WeakSet<HTMLElement>();
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function tick(): void {
+    const vpCx    = viewport.offsetWidth / 2;
+    const halfLen = track.scrollWidth / 2;
+
+    // Find the item whose centre is closest to the viewport centre
+    let minDist = Infinity;
+    let closest: HTMLElement | null = null;
+
+    for (const { el, cx } of centers) {
+      const dist = Math.abs(cx - pos - vpCx);
+      if (dist < minDist) { minDist = dist; closest = el; }
+    }
+
+    // Apply colour to only the closest item when it's within the zone
+    for (const { el } of centers) {
+      el.classList.toggle(
+        'logo--active',
+        !reduced && el === closest && minDist < CENTER_ZONE
+      );
+    }
+
+    if (countdown > 0) {
+      // Pause: hold position, keep speed at zero
+      countdown--;
+      currentSpeed = 0;
+    } else {
+      // Trigger a fresh pause when the closest item reaches the inner zone
+      if (!reduced && closest && minDist < PAUSE_ZONE && !paused.has(closest)) {
+        paused.add(closest);
+        countdown   = PAUSE_FRAMES;
+        currentSpeed = 0;
+      } else {
+        // Decelerate smoothly as an un-paused logo approaches centre,
+        // then accelerate freely once it has been paused (in the WeakSet)
+        if (!reduced && closest && minDist < SLOWDOWN_ZONE && !paused.has(closest)) {
+          const t = minDist / SLOWDOWN_ZONE;
+          targetSpeed = SPEED * t * t * (3 - 2 * t); // smoothstep 0 → SPEED
+        } else {
+          targetSpeed = SPEED;
+        }
+
+        // Lerp toward target — provides ease-out after pause and smooths
+        // any abrupt speed changes
+        currentSpeed += (targetSpeed - currentSpeed) * EASE;
+      }
+
+      pos += currentSpeed;
+      if (pos >= halfLen) pos -= halfLen;
+      track.style.transform = `translateX(${-pos}px)`;
+    }
+
+    // Release the paused flag once the item is well past the centre zone
+    for (const { el, cx } of centers) {
+      if (Math.abs(cx - pos - vpCx) > CENTER_ZONE * 3) paused.delete(el);
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+</script>
