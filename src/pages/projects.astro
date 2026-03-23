@@ -1,0 +1,345 @@
+---
+import HeaderComponent from '../components/header.astro';
+import Layout from '../layouts/Layout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import FooterComponent from '../components/footer.astro';
+import { getCollection } from 'astro:content';
+
+const imgArrow = "https://www.figma.com/api/mcp/asset/f62f259a-7813-4e82-8576-a286a98a6037";
+
+const projects = (await getCollection('projects'))
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+
+const total = projects.length;
+
+// Returns the CSS class for grid placement based on project index
+function gridClass(i: number): string {
+  if (i === total - 1 && total % 2 === 1) return 'proj-solo';
+  const pairEven = Math.floor(i / 2) % 2 === 0;
+  const isFirst  = i % 2 === 0;
+  if (pairEven) return isFirst ? 'proj-big-l' : 'proj-sm-r';
+  else          return isFirst ? 'proj-sm-l'  : 'proj-big-r';
+}
+
+// Big cards get a taller image + larger title; small cards get a shorter image
+function cardProps(i: number) {
+  if (i === total - 1 && total % 2 === 1)
+    return { imageHeight: '400px', titleSize: 'xl' as const };
+  const pairEven = Math.floor(i / 2) % 2 === 0;
+  const isFirst  = i % 2 === 0;
+  const isBig    = (pairEven && isFirst) || (!pairEven && !isFirst);
+  return isBig
+    ? { imageHeight: '450px', titleSize: 'xl' as const }
+    : { imageHeight: '420px', titleSize: 'md' as const };
+}
+---
+
+<Layout title="Projects — Jack Haek">
+  <HeaderComponent />
+
+  <main class="projects-main">
+
+    <!-- ── Page Header ────────────────────────────────────────── -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-title">
+          ENGINEERING<br />ARCHIVE
+        </h1>
+        <p class="page-subtitle">
+          A curated selection of modeling, simulation, and software
+          architectures defined by precision and computational efficiency.
+        </p>
+      </div>
+
+      <div class="filter-chips" role="group" aria-label="Filter projects">
+        <button class="filter-chip filter-chip--active">All Work</button>
+        <button class="filter-chip">Simulation</button>
+        <button class="filter-chip">Software</button>
+        <button class="filter-chip">Modeling</button>
+      </div>
+    </div>
+
+    <!-- ── Project Grid ───────────────────────────────────────── -->
+    <div class="project-grid">
+      {projects.map((project, i) => {
+        const slug = project.id.split('/')[0];
+        const { imageHeight, titleSize } = cardProps(i);
+        return (
+          <a href={`/projects/${slug}`} class:list={['proj-link', gridClass(i)]}>
+            <ProjectCard
+              layout="gallery"
+              category={project.data.category}
+              title={project.data.title}
+              image={project.data.image?.src}
+              imageAlt={project.data.imageAlt}
+              imageHeight={imageHeight}
+              titleSize={titleSize}
+              description={project.data.description}
+              tags={project.data.tags}
+              featured={project.data.featured}
+              transitionName={slug}
+            />
+          </a>
+        );
+      })}
+    </div>
+
+    <!-- ── CTA Section ────────────────────────────────────────── -->
+    <div class="cta-section">
+      <div class="cta-bg-text" aria-hidden="true">0101</div>
+      <div class="cta-content">
+        <h2 class="cta-title">
+          HAVE A SPECIFIC<br />CHALLENGE?
+        </h2>
+        <p class="cta-desc">
+          My simulations are built to solve impossible problems. Let's engineer
+          a solution for your technical architecture.
+        </p>
+        <a href="mailto:jackjhaek@gmail.com" class="cta-btn">
+          INITIATE COLLABORATION
+          <img src={imgArrow} alt="" width="16" height="16" class="cta-btn-icon" />
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <FooterComponent />
+</Layout>
+
+<style>
+  /* ── Page shell ──────────────────────────────────────────── */
+  .projects-main {
+    background: var(--surface);
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 128px var(--space-6) var(--space-20);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+  }
+
+  /* ── Page header ─────────────────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-8);
+    padding-top: 80px; /* nav clearance */
+  }
+
+  .page-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 672px;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--primary-container);
+  }
+
+  .page-subtitle {
+    font-family: var(--font-body);
+    font-size: var(--title-lg);
+    font-weight: 300;
+    line-height: 1.625;
+    color: #b9cac9;
+    max-width: 512px;
+  }
+
+  /* Filter chips */
+  .filter-chips {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-6);
+    border-radius: 12px;
+    border: none;
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--duration-base) var(--ease-kinetic),
+                color var(--duration-base) var(--ease-kinetic);
+  }
+
+  .filter-chip--active {
+    background: var(--primary-container);
+    color: #006d6d;
+  }
+
+  .filter-chip:not(.filter-chip--active):hover {
+    background: var(--surface-container-highest);
+  }
+
+  /* ── Project grid ────────────────────────────────────────── */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  /* Link wrapper — fills its grid cell, removes link underline */
+  .proj-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+  }
+
+  .proj-link :global(.project-card) {
+    flex: 1;
+    transition: opacity var(--duration-base) var(--ease-kinetic);
+  }
+
+  .proj-link:hover :global(.project-card) {
+    opacity: 0.85;
+  }
+
+  /* Positional placement classes */
+  .proj-big-l { grid-column: 1 / span 8; }
+  .proj-sm-r  { grid-column: 9 / span 4; }
+  .proj-sm-l  { grid-column: 1 / span 4; }
+  .proj-big-r { grid-column: 5 / span 8; }
+  .proj-solo  { grid-column: 1 / -1; }
+
+  /* ── CTA section ─────────────────────────────────────────── */
+  .cta-section {
+    position: relative;
+    background: var(--surface-container-low);
+    padding: var(--space-10);
+    overflow: hidden;
+  }
+
+  .cta-bg-text {
+    position: absolute;
+    top: 0;
+    right: var(--space-6);
+    font-family: var(--font-display);
+    font-size: 12rem;
+    font-weight: 400;
+    color: var(--on-surface);
+    opacity: 0.1;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .cta-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 512px;
+  }
+
+  .cta-title {
+    font-family: var(--font-display);
+    font-size: var(--display-sm);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+    color: white;
+  }
+
+  .cta-desc {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 400;
+    line-height: 24px;
+    color: #b9cac9;
+    padding-bottom: var(--space-2);
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    align-self: flex-start;
+    padding: var(--space-4) 40px;
+    background: var(--primary-container);
+    color: #006d6d;
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: transform var(--duration-base) var(--ease-kinetic),
+                box-shadow var(--duration-base) var(--ease-kinetic);
+  }
+
+  .cta-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 247, 247, 0.2);
+  }
+
+  .cta-btn-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 1024px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Collapse to 2 equal columns.
+       Even pairs: big-l fills row, sm-r fills row (stacked full-width).
+       Odd pairs:  sm-l on left, big-r on right (side by side). */
+    .project-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .proj-big-l,
+    .proj-sm-r,
+    .proj-solo  { grid-column: 1 / -1; }
+
+    .proj-sm-l  { grid-column: 1; }
+    .proj-big-r { grid-column: 2; }
+  }
+
+  @media (max-width: 640px) {
+    .projects-main {
+      padding-top: 100px;
+    }
+
+    .page-title {
+      font-size: 3rem;
+    }
+
+    .filter-chips {
+      flex-wrap: wrap;
+    }
+
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .proj-big-l,
+    .proj-sm-r,
+    .proj-sm-l,
+    .proj-big-r,
+    .proj-solo  { grid-column: 1; }
+
+    .cta-bg-text {
+      font-size: 6rem;
+    }
+  }
+</style>

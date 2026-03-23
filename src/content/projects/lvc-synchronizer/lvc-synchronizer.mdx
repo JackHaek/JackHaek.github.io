@@ -1,0 +1,207 @@
+---
+title: "LVC_SYNCHRONIZER_V1"
+category: "Hybrid Architecture"
+description: "A deterministic time-synchronization layer bridging Live, Virtual, and Constructive simulation domains across heterogeneous network topologies with sub-15ms latency guarantees."
+tags: ["DIS/HLA", "C++", "Kubernetes", "gRPC", "Real-Time Systems"]
+image: "./lvc-synchronizer-hero.jpg"
+imageAlt: "LVC Synchronizer architecture overview dashboard"
+featured: true
+publishDate: 2025-11-12
+status: "active"
+github: "https://github.com/jackjhaek/lvc-synchronizer"
+---
+
+import { Image } from 'astro:assets';
+import dashboardImg from './lvc-synchronizer-dashboard.png';
+
+<p class="section-label">Mission Overview</p>
+
+LVC Synchronizer V1 is a real-time federation middleware layer that solves one of distributed simulation's hardest problems: keeping **Live**, **Virtual**, and **Constructive** entities coherent across heterogeneous network segments without sacrificing determinism.
+
+The system acts as a time-space-position-information (TSPI) broker — consuming raw DIS PDUs from live range assets, normalizing them against HLA federate time, and re-publishing to constructive environments within a single network tick.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">End-to-End Latency</span>
+    <span class="stat-value">&lt;15</span>
+    <span class="stat-unit">ms — p99</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Throughput</span>
+    <span class="stat-value">40K</span>
+    <span class="stat-unit">PDUs / second</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Uptime</span>
+    <span class="stat-value">99.9</span>
+    <span class="stat-unit">% — 30-day rolling</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Node Scale</span>
+    <span class="stat-value">128</span>
+    <span class="stat-unit">concurrent federates</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<div class="arch-diagram">
+  ┌──────────────── LVC SYNCHRONIZER V1 ─────────────────────┐
+  │                                                            │
+  │   LIVE DOMAIN             VIRTUAL DOMAIN                  │
+  │   ┌─────────────┐         ┌─────────────┐                 │
+  │   │  Range RF   │         │  Simulator  │                 │
+  │   │  Tracking   │         │  Nodes (N)  │                 │
+  │   └──────┬──────┘         └──────┬──────┘                 │
+  │          │  DIS/UDP              │  HLA/RTI               │
+  │          ▼                       ▼                         │
+  │   ┌──────────────────────────────────────────┐            │
+  │   │           INGESTION LAYER                │            │
+  │   │   DIS PDU Parser    HLA Federate Proxy   │            │
+  │   │   (multi-threaded)  (RTI Ambassador)     │            │
+  │   └─────────────────────┬────────────────────┘            │
+  │                         │ protobuf/gRPC                   │
+  │                         ▼                                  │
+  │   ┌──────────────────────────────────────────┐            │
+  │   │        TIME-SYNC COORDINATOR             │ ◄── GPS    │
+  │   │   • Logical Time Factory (LTF)           │    Master  │
+  │   │   • Dead-reckoning correction engine     │            │
+  │   │   • Conflict resolution (last-write wins)│            │
+  │   └─────────────────────┬────────────────────┘            │
+  │                         │                                  │
+  │           ┌─────────────┴─────────────┐                   │
+  │           ▼                           ▼                    │
+  │   ┌───────────────┐         ┌─────────────────┐           │
+  │   │  CONSTRUCTIVE │         │  TELEMETRY BUS  │           │
+  │   │  Federates    │         │  Prometheus +   │           │
+  │   │  (VBS/OneSAF) │         │  Grafana Stack  │           │
+  │   └───────────────┘         └─────────────────┘           │
+  │                                                            │
+  └────────────────────────────────────────────────────────────┘
+</div>
+
+The coordinator uses a **Logical Time Factory (LTF)** pattern: each ingested event is tagged with a monotonic logical timestamp derived from GPS-disciplined NTP, then sorted into a priority queue before fan-out. This eliminates causal ordering violations that plague naïve bridge designs.
+
+<div class="callout">
+  <strong>Design constraint</strong> — All DIS-to-HLA translation must complete within a single 10ms simulation tick. Any PDU that cannot be translated in time is dead-reckoned forward using the last known state vector rather than dropped, ensuring constructive federates never observe entity discontinuities.
+</div>
+
+---
+
+<p class="section-label">Development Timeline</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Q1 2025 — Phase 0</div>
+    <div class="timeline-title">Requirements & Protocol Analysis</div>
+    <div class="timeline-body">
+      Mapped DIS IEEE 1278.1-2012 PDU types against HLA Object Model Template (OMT). Identified 23 entity-state translation mappings requiring custom interpolation logic due to coordinate system divergence (geocentric vs. flat-earth).
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q2 2025 — Phase 1</div>
+    <div class="timeline-title">Core Ingestion Layer</div>
+    <div class="timeline-body">
+      Implemented multi-threaded DIS PDU parser in C++20 using lock-free ring buffers (SPSC). Achieved 18K PDU/s single-core baseline. HLA federate proxy built on PITCH pRTI with custom ambassador callbacks.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q3 2025 — Phase 2</div>
+    <div class="timeline-title">Time-Sync Coordinator</div>
+    <div class="timeline-body">
+      Designed the Logical Time Factory with configurable lookahead window (default 50ms). Integrated dead-reckoning correction engine supporting DR algorithms DR3 through DR9 from the DIS standard. p99 latency dropped from 42ms to 11ms after switching to io_uring for network I/O.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q4 2025 — Phase 3</div>
+    <div class="timeline-title">Kubernetes Deployment & Scaling</div>
+    <div class="timeline-body">
+      Containerized the stack with custom Helm charts. HPA scales coordinator pods based on PDU queue depth (custom metrics via KEDA). Tested to 128 concurrent federates across a 3-region cluster before queue saturation.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q1 2026 — Current</div>
+    <div class="timeline-title">Live Range Integration Testing</div>
+    <div class="timeline-body">
+      Active JLVC federation exercise integration. Coordinating with range safety officers to validate entity-state fidelity against ground truth telemetry from instrumented aircraft.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Performance Profile</p>
+
+<div class="perf-table">
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">PDU Parse Throughput</span>
+      <span class="perf-value">40,000 / sec</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 80%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">p99 End-to-End Latency</span>
+      <span class="perf-value">&lt;15 ms</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 92%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Dead-Reckoning Accuracy</span>
+      <span class="perf-value">0.3 m CEP</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 97%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Time-Sync Jitter</span>
+      <span class="perf-value">±0.8 ms</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 88%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Cluster Uptime (30d)</span>
+      <span class="perf-value">99.91%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 99%;"></div></div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Telemetry Snapshot</p>
+
+<div class="scan-wrap">
+  <Image src={dashboardImg} alt="Grafana telemetry dashboard showing PDU throughput and latency heatmaps" />
+  <div class="scan-line"></div>
+  <div class="scan-overlay"></div>
+</div>
+
+The telemetry stack runs Prometheus + Grafana with three custom exporters: one on the DIS ingestion layer (PDU type distribution, parse errors), one on the coordinator (queue depth, dead-reckoning activations, conflict resolutions), and one on the HLA publish layer (federate heartbeat, attribute update frequency).
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why io_uring over epoll?** The DIS receiver must drain up to 40K UDP datagrams per second from a multicast group. Traditional epoll + recvmsg saturated a single core at ~22K PDU/s due to syscall overhead. Switching to io_uring's fixed-buffer registered I/O brought syscall cost near zero and allowed the same core to sustain 40K PDU/s with headroom.
+
+**Why gRPC between ingestion and coordinator?** The ingestion and coordinator run as separate Kubernetes pods to allow independent scaling. gRPC over HTTP/2 with protobuf encoding gave us structured schema evolution (critical for DIS version interoperability) and built-in flow control without hand-rolling a wire protocol.
+
+**Why KEDA for autoscaling?** Kubernetes' native HPA only scales on CPU and memory. PDU queue depth — the actual signal for coordinator saturation — is a custom metric. KEDA's ScaledObject CRD lets us define a queue-depth threshold directly in YAML, scaling coordinator replicas from 1 to 12 within ~20 seconds of a burst.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The hardest problem was **coordinate frame alignment**. DIS uses geocentric ECEF; most HLA federation OMTs use a local flat-earth NED frame anchored to a range origin. Naïve matrix rotation introduced 0.6m of accumulated drift per 100km of entity travel due to floating-point cancellation. The fix was to carry a 64-bit `double` reference origin and operate in relative ECEF throughout the coordinator, only converting to NED at the HLA publish boundary.
+
+The second surprise was **HLA time regulation overhead**. Enabling time-constrained/time-regulating mode on all federates caused coordinator throughput to drop 40% — RTI grant latency became the bottleneck. Solution: only the coordinator itself participates in HLA time management; downstream constructive federates receive best-effort attribute updates with a lookahead hint embedded in the FOM extension.
+
+<div class="callout">
+  <strong>Status</strong> — V1.3 is in active JLVC exercise integration. V2 planning has begun, targeting sub-5ms p99 latency via DPDK-accelerated network I/O and a re-entrant coordinator using C++20 coroutines.
+</div>

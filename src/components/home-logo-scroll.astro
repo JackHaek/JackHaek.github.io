@@ -1,0 +1,77 @@
+<section class="stats-bar">
+  <div class="stats-inner">
+
+    <div class="stat-item">
+      <span class="stat-label">LVC Latency</span>
+      <span class="stat-value">&lt;15ms</span>
+    </div>
+
+    <div class="stat-item">
+      <span class="stat-label">Cloud Scale</span>
+      <span class="stat-value">K8S_READY</span>
+    </div>
+
+    <div class="stat-item">
+      <span class="stat-label">Live Sync</span>
+      <span class="stat-value">FLIGHT_READY</span>
+    </div>
+
+    <div class="stat-item">
+      <span class="stat-label">Sim Stability</span>
+      <span class="stat-value">99.998%</span>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .stats-bar {
+    background: var(--surface-container-lowest);
+    padding: var(--space-12) var(--space-6);
+  }
+
+  .stats-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    border-left: 2px solid rgba(0, 247, 247, 0.2);
+    padding-left: 26px;
+  }
+
+  .stat-label {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #839493;
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--primary-fixed-dim);
+  }
+
+  @media (max-width: 700px) {
+    .stats-inner {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 400px) {
+    .stats-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

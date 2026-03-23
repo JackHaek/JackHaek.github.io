@@ -1,0 +1,267 @@
+---
+const portraitUrl = "https://www.figma.com/api/mcp/asset/7a9666d6-374d-4b15-9a66-9de12035d583";
+---
+
+<section class="hero">
+  <div class="hero-inner">
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span class="badge-label">LVC Engineering // Active</span>
+      </div>
+
+      <h1 class="hero-heading">
+        <span>JACK <em>HAEK</em>.</span>
+        <span class="muted">HYBRID</span>
+        <span>REALITY.</span>
+      </h1>
+
+      <p class="hero-description">
+        Modeling and Simulation Engineer specializing in
+        <strong>Live-Virtual-Constructive (LVC) environments</strong>.
+        Expert in blending live flight telemetry with high-fidelity simulated
+        assets through real-time distributed systems.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#contact" class="btn-primary">Initialize Sync</a>
+        <a href="#stack" class="btn-ghost">Technical Specs</a>
+      </div>
+    </div>
+
+    <div class="hero-photo-wrap">
+      <div class="hero-glow"></div>
+      <div class="hero-photo-card">
+        <img src={portraitUrl} alt="Jack Haek" class="hero-portrait" />
+        <span class="photo-ref">Ref: LVC_7702</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-6);
+    background: var(--surface);
+    background-image: radial-gradient(
+      ellipse 60% 80% at -5% 50%,
+      rgba(58, 74, 73, 0.5) 0%,
+      transparent 70%
+    );
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-8);
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding-top: 80px;
+  }
+
+  /* ── Left: 7 cols ── */
+  .hero-content {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  /* ── Right: 5 cols ── */
+  .hero-photo-wrap {
+    grid-column: 8 / span 5;
+    position: relative;
+    align-self: center;
+  }
+
+  /* Badge */
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 4px 12px;
+    background: var(--surface-container-high);
+    border-radius: 12px;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary-container);
+    border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .badge-label {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #b9cac9;
+  }
+
+  /* Heading */
+  .hero-heading {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 6rem;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--on-surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-heading em {
+    font-style: normal;
+    color: var(--primary-container);
+  }
+
+  .hero-heading .muted {
+    color: #839493;
+  }
+
+  /* Description */
+  .hero-description {
+    font-family: var(--font-body);
+    font-size: var(--title-lg);
+    font-weight: 400;
+    line-height: 1.625;
+    color: #b9cac9;
+    max-width: 576px;
+  }
+
+  .hero-description strong {
+    color: var(--on-surface);
+    font-weight: 400;
+  }
+
+  /* Actions */
+  .hero-actions {
+    display: flex;
+    gap: var(--space-6);
+    align-items: center;
+    padding-top: var(--space-4);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 17px 33px;
+    background: transparent;
+    border: 1px solid #3a4a49;
+    border-radius: var(--radius-md);
+    color: var(--primary);
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color var(--duration-base) var(--ease-kinetic),
+                color var(--duration-base) var(--ease-kinetic);
+  }
+
+  .btn-ghost:hover {
+    border-color: rgba(0, 221, 221, 0.4);
+    color: var(--primary-container);
+  }
+
+  /* Photo */
+  .hero-glow {
+    position: absolute;
+    width: 256px;
+    height: 256px;
+    background: rgba(0, 247, 247, 0.1);
+    border-radius: 12px;
+    filter: blur(50px);
+    bottom: -40px;
+    left: -40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-photo-card {
+    position: relative;
+    background: var(--surface-container-low);
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  /* Faint inner frame overlay */
+  .hero-photo-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 20px solid rgba(14, 14, 17, 0.5);
+    pointer-events: none;
+  }
+
+  .hero-portrait {
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+    object-position: top center;
+    opacity: 0.8;
+    display: block;
+  }
+
+  .photo-ref {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    background: var(--primary-container);
+    color: #006d6d;
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      padding-top: 120px;
+      padding-bottom: var(--space-12);
+    }
+
+    .hero-content {
+      grid-column: 1 / -1;
+    }
+
+    .hero-photo-wrap {
+      grid-column: 1 / -1;
+      max-width: 480px;
+    }
+
+    .hero-heading {
+      font-size: 4.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-heading {
+      font-size: 3rem;
+    }
+
+    .hero-actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

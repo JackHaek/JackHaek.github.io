@@ -1,0 +1,775 @@
+---
+import HeaderComponent from '../components/header.astro';
+import Layout from '../layouts/Layout.astro';
+import FooterComponent from '../components/footer.astro';
+
+const portraitUrl  = "https://www.figma.com/api/mcp/asset/a2028d3a-e208-4e54-ae3f-c47949b60941";
+const iconLvc      = "https://www.figma.com/api/mcp/asset/cebd3fed-11fa-44a0-af31-72ae7c96c7f5";
+const iconPerf     = "https://www.figma.com/api/mcp/asset/7f32714a-bccd-4b3c-b47c-a748156e7790";
+const iconRel      = "https://www.figma.com/api/mcp/asset/3d8487c7-3b1e-4409-a4c3-0761ba65a393";
+---
+
+<Layout title="About — Jack Haek">
+  <HeaderComponent />
+
+  <main class="about-main">
+
+    <!-- ── Hero: Profile ─────────────────────────────────────── -->
+    <section class="profile-section">
+      <div class="profile-grid">
+
+        <!-- Photo -->
+        <div class="photo-col">
+          <div class="photo-glow"></div>
+          <div class="photo-frame">
+            <img src={portraitUrl} alt="Jack Haek" class="portrait" />
+            <div class="portrait-desat" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="bio-col">
+          <p class="role-label">Lead LVC Simulation Engineer</p>
+
+          <h1 class="bio-name">JACK HAEK.</h1>
+
+          <div class="bio-body">
+            <p>
+              Synthesizing physical realities through deterministic modeling and
+              cloud-native architectures. I build mission-critical LVC (Live,
+              Virtual, Constructive) environments where scalability meets
+              sub-millisecond precision.
+            </p>
+            <p>
+              Currently leading simulation-to-flight integration at the
+              intersection of aerospace and autonomous systems.
+            </p>
+          </div>
+
+          <div class="bio-actions">
+            <a href="/cv.pdf" class="btn-primary">Download CV</a>
+            <a href="mailto:jackjhaek@gmail.com" class="btn-ghost">Get in Touch</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Experience Timeline ────────────────────────────────── -->
+    <section class="experience-section">
+      <div class="section-header section-header--left">
+        <h2 class="section-title">EXPERIENCE_LOG</h2>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="timeline">
+
+        <!-- Entry 1 -->
+        <div class="timeline-row">
+          <div class="timeline-meta">
+            <span class="timeline-date">2021 — Present</span>
+            <span class="timeline-badge">LVC Team Lead</span>
+          </div>
+          <div class="timeline-card timeline-card--accent">
+            <div class="card-glow"></div>
+            <h3 class="timeline-title">Senior LVC Simulation Architect</h3>
+            <p class="timeline-company">AeroKinetic Systems</p>
+            <p class="timeline-desc">
+              Leading the Live-Virtual-Constructive (LVC) engineering group.
+              Architected a cloud-native simulation backbone using Kubernetes to
+              orchestrate massive-scale multi-agent scenarios. Integrated live
+              flight telemetry with constructive entities in real-time, achieving
+              sub-10ms synchronization across distributed nodes for
+              mission-critical testing.
+            </p>
+            <ul class="chip-list">
+              <li class="chip">Kubernetes</li>
+              <li class="chip">gRPC</li>
+              <li class="chip">C++20</li>
+              <li class="chip">DDS</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Entry 2 -->
+        <div class="timeline-row">
+          <div class="timeline-meta">
+            <span class="timeline-date">2018 — 2021</span>
+          </div>
+          <div class="timeline-card">
+            <h3 class="timeline-title">Physics Engine Developer</h3>
+            <p class="timeline-company">Neural Dynamics Labs</p>
+            <p class="timeline-desc">
+              Developed high-fidelity synthetic data generation pipelines for
+              autonomous vehicle validation. Specialized in deterministic replay
+              systems and distributed physics solvers, ensuring 100%
+              repeatability across heterogeneous compute clusters for
+              safety-critical ML training.
+            </p>
+            <ul class="chip-list">
+              <li class="chip">PhysX</li>
+              <li class="chip">Docker</li>
+              <li class="chip">Python</li>
+              <li class="chip">CUDA</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Technical Stack ────────────────────────────────────── -->
+    <section class="stack-section">
+      <div class="section-header section-header--right">
+        <div class="divider-line"></div>
+        <h2 class="section-title">TECHNICAL_STACK</h2>
+      </div>
+
+      <div class="skills-grid">
+
+        <!-- Card 1: LVC & Cloud-Native (wide) -->
+        <div class="skill-card skill-card--wide skill-card--accent-border">
+          <img src={iconLvc} alt="" class="skill-icon" width="30" height="24" />
+          <h3 class="skill-title">LVC &amp; Cloud-Native</h3>
+          <p class="skill-desc">
+            Specializing in the integration of live flight hardware with virtual
+            environments. Expert in scaling simulation workloads across distributed
+            infrastructure for high-reliability applications.
+          </p>
+          <ul class="feature-grid">
+            <li class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Kubernetes Orchestration</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Live/Sim Flight Integration</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Cloud-native Simulation</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Mission-Critical Scalability</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Core Performance -->
+        <div class="skill-card skill-card--perf">
+          <img src={iconPerf} alt="" class="skill-icon" width="27" height="27" />
+          <h3 class="skill-title">Core Performance</h3>
+          <ul class="perf-list">
+            <li class="perf-item">
+              <span class="perf-label">C++20 (Low-Latency)</span>
+              <span class="perf-value">98%</span>
+            </li>
+            <li class="perf-item">
+              <span class="perf-label">Distributed Systems</span>
+              <span class="perf-value">95%</span>
+            </li>
+            <li class="perf-item">
+              <span class="perf-label">Real-time Kinematics</span>
+              <span class="perf-value">92%</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Reliability -->
+        <div class="skill-card skill-card--rel">
+          <img src={iconRel} alt="" class="skill-icon" width="30" height="32" />
+          <h3 class="skill-title">Reliability</h3>
+          <div class="bars">
+            <div class="bar-track"><div class="bar-fill" style="width:96%"></div></div>
+            <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+            <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+          </div>
+          <p class="bar-label">System Precision &amp; Uptime</p>
+        </div>
+
+        <!-- Card 4: Education (wide) -->
+        <div class="skill-card skill-card--edu skill-card--wide-right">
+          <div class="edu-entry">
+            <h3 class="skill-title">Education</h3>
+            <p class="edu-degree">M.Sc. in Computational Physics</p>
+            <p class="edu-school"><strong>ETH Zürich</strong> — 2018</p>
+          </div>
+          <div class="edu-divider"></div>
+          <div class="edu-entry">
+            <p class="edu-degree">B.Sc. Mechanical Engineering</p>
+            <p class="edu-school"><strong>MIT</strong> — 2016</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <FooterComponent />
+</Layout>
+
+<style>
+  /* ── Page shell ──────────────────────────────────────────── */
+  .about-main {
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 128px;
+    padding: 128px var(--space-6) 224px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ── Shared section header ───────────────────────────────── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: 64px;
+  }
+
+  .section-header--right {
+    flex-direction: row-reverse;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: var(--display-sm);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--on-surface);
+    white-space: nowrap;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(58, 74, 73, 0.2);
+  }
+
+  /* ── Profile section ─────────────────────────────────────── */
+  .profile-section {
+    padding-top: 80px; /* nav clearance */
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  /* Photo — cols 1-5 */
+  .photo-col {
+    grid-column: 1 / span 5;
+    position: relative;
+  }
+
+  .photo-glow {
+    position: absolute;
+    inset: -16px;
+    background: rgba(0, 247, 247, 0.1);
+    border-radius: 12px;
+    filter: blur(20px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .photo-frame {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-top: 4px solid var(--primary-container);
+    border-left: 4px solid var(--primary-container);
+    box-shadow: var(--shadow-float);
+  }
+
+  .portrait {
+    width: 100%;
+    height: 150%;
+    object-fit: cover;
+    object-position: top center;
+    margin-top: -25%;
+    display: block;
+  }
+
+  /* Desaturation overlay (white + saturation blend) */
+  .portrait-desat {
+    position: absolute;
+    inset: 0;
+    background: white;
+    mix-blend-mode: saturation;
+    pointer-events: none;
+  }
+
+  /* Bio — cols 6-12 */
+  .bio-col {
+    grid-column: 6 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-top: var(--space-4);
+  }
+
+  .role-label {
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .bio-name {
+    font-family: var(--font-display);
+    font-size: 6rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--on-surface);
+  }
+
+  .bio-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 672px;
+  }
+
+  .bio-body p {
+    font-family: var(--font-body);
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 2rem;
+    color: #b9cac9;
+  }
+
+  .bio-actions {
+    display: flex;
+    gap: var(--space-6);
+    align-items: center;
+    padding-top: var(--space-8);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 17px 33px;
+    background: transparent;
+    border: 1px solid rgba(58, 74, 73, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--primary);
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color var(--duration-base) var(--ease-kinetic),
+                color var(--duration-base) var(--ease-kinetic);
+  }
+
+  .btn-ghost:hover {
+    border-color: rgba(0, 221, 221, 0.4);
+    color: var(--primary-container);
+  }
+
+  /* ── Timeline ────────────────────────────────────────────── */
+  .experience-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+  }
+
+  .timeline-meta {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: 17px;
+  }
+
+  .timeline-date {
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #839493;
+  }
+
+  .timeline-badge {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 3px 9px;
+    background: rgba(0, 247, 247, 0.2);
+    border: 1px solid rgba(0, 247, 247, 0.3);
+    border-radius: 2px;
+    font-family: var(--font-body);
+    font-size: var(--label-sm);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .timeline-card {
+    grid-column: 2 / span 3;
+    background: var(--surface-container-low);
+    border-radius: 4px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timeline-card--accent {
+    border-left: 4px solid var(--primary-container);
+    padding-left: 44px;
+  }
+
+  /* Decorative glow orb in top-right of accented card */
+  .card-glow {
+    position: absolute;
+    top: -64px;
+    right: -64px;
+    width: 128px;
+    height: 128px;
+    background: rgba(0, 247, 247, 0.05);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  .timeline-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    color: white;
+    line-height: 2rem;
+  }
+
+  .timeline-company {
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .timeline-desc {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 400;
+    line-height: 26px;
+    color: #b9cac9;
+    padding-top: var(--space-4);
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    list-style: none;
+  }
+
+  /* ── Skills bento grid ───────────────────────────────────── */
+  .stack-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 320px 286px;
+    gap: var(--space-6);
+  }
+
+  .skill-card {
+    background: var(--surface-container-low);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Column spans */
+  .skill-card--wide       { grid-column: 1 / span 2; grid-row: 1; }
+  .skill-card--perf       { grid-column: 3;           grid-row: 1; }
+  .skill-card--rel        { grid-column: 1;           grid-row: 2; }
+  .skill-card--wide-right { grid-column: 2 / span 2;  grid-row: 2; }
+
+  .skill-card--accent-border {
+    border-left: 2px solid var(--primary-container);
+  }
+
+  .skill-card--perf {
+    background: #1f1f22;
+  }
+
+  .skill-card--rel {
+    background: var(--surface-container-lowest);
+    border: 1px solid rgba(58, 74, 73, 0.1);
+  }
+
+  .skill-card--edu {
+    background: var(--surface-container-high);
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .skill-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .skill-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    line-height: 2rem;
+  }
+
+  .skill-desc {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    color: #b9cac9;
+    line-height: 24px;
+  }
+
+  /* Feature bullet grid (card 1) */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    list-style: none;
+    margin-top: auto;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: var(--on-surface);
+  }
+
+  .feature-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--primary-container);
+    flex-shrink: 0;
+  }
+
+  /* Perf list (card 2) */
+  .perf-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-top: auto;
+  }
+
+  .perf-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 9px;
+    border-bottom: 1px solid rgba(58, 74, 73, 0.2);
+  }
+
+  .perf-label {
+    font-family: var(--font-body);
+    font-size: var(--label-md);
+    color: var(--on-surface);
+  }
+
+  .perf-value {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    color: var(--primary-container);
+  }
+
+  /* Progress bars (card 3) */
+  .bars {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    opacity: 0.5;
+    margin-top: auto;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: rgba(58, 74, 73, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--primary-container);
+    border-radius: 12px;
+  }
+
+  .bar-label {
+    font-family: var(--font-display);
+    font-size: var(--label-md);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #839493;
+  }
+
+  /* Education (card 4) */
+  .edu-entry {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .edu-divider {
+    width: 1px;
+    height: 48px;
+    background: rgba(58, 74, 73, 0.3);
+    flex-shrink: 0;
+  }
+
+  .edu-degree {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    color: #b9cac9;
+    line-height: 24px;
+  }
+
+  .edu-school {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    color: #b9cac9;
+    line-height: 24px;
+  }
+
+  .edu-school strong {
+    color: white;
+    font-weight: 400;
+  }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .about-main {
+      gap: 96px;
+      padding-top: 120px;
+    }
+
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .photo-col {
+      grid-column: 1;
+      max-width: 420px;
+    }
+
+    .bio-col {
+      grid-column: 1;
+    }
+
+    .bio-name {
+      font-size: 4rem;
+    }
+
+    .bio-body p {
+      font-size: 1.25rem;
+    }
+
+    .timeline-row {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline-meta {
+      grid-column: 1;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+      padding-top: 0;
+    }
+
+    .timeline-card {
+      grid-column: 1;
+    }
+
+    .skills-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+    }
+
+    .skill-card--wide       { grid-column: 1 / -1; grid-row: auto; }
+    .skill-card--perf       { grid-column: 1;      grid-row: auto; }
+    .skill-card--rel        { grid-column: 2;      grid-row: auto; }
+    .skill-card--wide-right { grid-column: 1 / -1; grid-row: auto; }
+
+    .skill-card--edu {
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .edu-divider {
+      width: 48px;
+      height: 1px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .bio-name {
+      font-size: 3rem;
+    }
+
+    .bio-actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .skills-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .skill-card--wide,
+    .skill-card--perf,
+    .skill-card--rel,
+    .skill-card--wide-right {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+</style>

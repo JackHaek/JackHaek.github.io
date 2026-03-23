@@ -1,0 +1,180 @@
+---
+title: "ORBITAL_MECHANICS_ENGINE"
+category: "Orbital Mechanics"
+description: "A high-fidelity multi-body gravitational propagator for LEO satellite constellation planning, delivering centimeter-level position accuracy across 7-day prediction horizons at 10× real-time simulation speed."
+tags: ["C++20", "Rust", "CUDA", "Astrodynamics", "Numerical Methods"]
+featured: false
+publishDate: 2025-08-20
+status: "completed"
+github: "https://github.com/jackjhaek/orbital-mechanics-engine"
+---
+
+<p class="section-label">Mission Overview</p>
+
+The Orbital Mechanics Engine is a standalone propagation library and runtime designed for constellation operators who need accurate, fast conjunction analysis without the overhead of a full STK or GMAT deployment. It implements a full force model stack — Earth gravity harmonics (EGM2008, 70×70), atmospheric drag (NRLMSISE-00), solar radiation pressure, and third-body perturbations from the Moon and Sun — and runs the entire propagation chain on GPU via custom CUDA kernels.
+
+The target workload is 1,024 satellites propagated simultaneously over a 7-day window, producing position/velocity state vectors at 30-second intervals for conjunction screening.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Propagation Speed</span>
+    <span class="stat-value">10×</span>
+    <span class="stat-unit">real-time (GPU)</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Position Accuracy</span>
+    <span class="stat-value">1.8</span>
+    <span class="stat-unit">cm CEP @ 7 days</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Satellite Capacity</span>
+    <span class="stat-value">1,024</span>
+    <span class="stat-unit">concurrent objects</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Conjunction Pairs</span>
+    <span class="stat-value">524K</span>
+    <span class="stat-unit">screened / 7-day run</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<div class="arch-diagram">
+  ┌──────────────── ORBITAL MECHANICS ENGINE ────────────────────┐
+  │                                                               │
+  │  INPUT LAYER                                                  │
+  │  ┌────────────────┐   ┌───────────────┐   ┌───────────────┐  │
+  │  │  TLE / SP3     │   │  Space-Track  │   │  User-defined │  │
+  │  │  Ingest (Rust) │   │  REST Client  │   │  JSON catalog │  │
+  │  └───────┬────────┘   └──────┬────────┘   └──────┬────────┘  │
+  │          └───────────────────┴──────────────────┘            │
+  │                              │ Cartesian state @ epoch       │
+  │                              ▼                               │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │              FORCE MODEL PIPELINE (CUDA)              │   │
+  │  │                                                       │   │
+  │  │   EGM2008        NRLMSISE-00      Solar Radiation     │   │
+  │  │   Gravity        Drag Model       Pressure (SRP)      │   │
+  │  │   (70×70)        (density look-   (dual-cone shadow)  │   │
+  │  │                   up table)                           │   │
+  │  │                                                       │   │
+  │  │   ──── batched RK4/RK8(5,3) adaptive integrator ──── │   │
+  │  └───────────────────────────┬───────────────────────────┘   │
+  │                              │ state history (GPU mem)       │
+  │                              ▼                               │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │          CONJUNCTION SCREENING (CPU+GPU)              │   │
+  │  │   Broad phase: DBSCAN on perigee/apogee bands         │   │
+  │  │   Narrow phase: TCA solver + miss-distance covariance │   │
+  │  └───────────────────────────┬───────────────────────────┘   │
+  │                              │ CDMs (CCSDS 508.0)            │
+  │                              ▼                               │
+  │  ┌────────────────────────────────┐                          │
+  │  │  OUTPUT: CDM files / REST API  │                          │
+  │  └────────────────────────────────┘                          │
+  └───────────────────────────────────────────────────────────────┘
+</div>
+
+The integrator is a batched RK8(5,3) Dormand-Prince scheme: each satellite occupies a single CUDA thread, and the adaptive step-size controller runs entirely on-device to avoid round-trip PCIe stalls. The gravity kernel preloads the EGM2008 coefficient table into L2 texture cache at startup — a one-time cost that pays off across the entire propagation run.
+
+<div class="callout">
+  <strong>Accuracy target</strong> — Validated against JPL Horizons ephemeris data for ISS (NORAD 25544) over 7-day arcs. Mean absolute position error: 1.8 cm CEP, well within the 10 cm requirement for close-approach warning issuance.
+</div>
+
+---
+
+<p class="section-label">Development Timeline</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Q1 2025 — Phase 0</div>
+    <div class="timeline-title">Numerical Methods Selection</div>
+    <div class="timeline-body">
+      Benchmarked SGP4, RK4, and RK8(5,3) against Horizons ground truth over 7-day ISS arcs. SGP4 accumulated 4.2 km error; fixed-step RK4 at 30s steps accumulated 890 m. Settled on adaptive RK8(5,3) with 1e-12 absolute tolerance — error dropped to sub-meter before force model refinement.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q2 2025 — Phase 1</div>
+    <div class="timeline-title">CUDA Force Model Pipeline</div>
+    <div class="timeline-body">
+      Implemented EGM2008 spherical harmonic summation as a CUDA kernel using Horner's recurrence for numerical stability. Gravity alone at 70×70 degree/order runs in 0.9 ms for 1,024 satellites on an A100. Added NRLMSISE-00 density table baked into constant memory.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q3 2025 — Phase 2</div>
+    <div class="timeline-title">Conjunction Screening</div>
+    <div class="timeline-body">
+      Broad-phase screening using perigee/apogee banding reduces the 1,024-choose-2 = 523,776 candidate pairs to ~2,400 high-interest pairs per run. Narrow phase computes time of closest approach (TCA) via Brent's method with a covariance-based miss-distance probability.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q4 2025 — Phase 3</div>
+    <div class="timeline-title">Rust Ingest Layer & REST API</div>
+    <div class="timeline-body">
+      Built a Rust crate for TLE and SP3 parsing (handling the numerous edge cases in real-world TLE catalogs). Wrapped the C++ engine in a C ABI and exposed a Rust REST API via Axum, serving CDM files in CCSDS 508.0 format.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Performance Profile</p>
+
+<div class="perf-table">
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">7-day propagation, 1,024 sats (A100)</span>
+      <span class="perf-value">42 sec</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 95%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Position accuracy vs. Horizons (7d)</span>
+      <span class="perf-value">1.8 cm CEP</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 98%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Conjunction pairs screened</span>
+      <span class="perf-value">523,776</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 100%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Gravity kernel (70×70, 1K sats)</span>
+      <span class="perf-value">0.9 ms</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 91%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">REST API p99 response (CDM query)</span>
+      <span class="perf-value">38 ms</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 85%;"></div></div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why adaptive step-size on GPU?** Early prototypes used a fixed 10-second step managed by the CPU — the driver loop serialized each step across all 1,024 satellites, wasting GPU throughput. Moving step-size control on-device allows each thread to advance independently at its locally optimal step, reducing total integration steps by ~60% for eccentric orbits where the force gradient is highly non-uniform.
+
+**Why Rust for the ingest layer?** Real-world TLE catalogs from Space-Track contain malformed records, out-of-order epochs, and duplicate NORAD IDs. Rust's exhaustive pattern matching made building a robust parser with structured error types significantly safer than a C++ implementation would have been — all parse errors surface as typed variants rather than silent data corruption.
+
+**Why CCSDS CDM output format?** Operator toolchains (including Ansys ODTK and commercial TT&C systems) accept CCSDS 508.0 CDMs natively. Producing CDMs rather than a proprietary JSON schema meant zero integration work for the first three operator customers.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The most expensive lesson was **solar radiation pressure modeling for high area-to-mass ratio objects**. Flat-plate SRP with a simple cylindrical shadow model produced 12 cm of error for a 3U CubeSat over 7 days — unacceptable. The fix was a dual-cone penumbra model (umbra + antumbra) with per-facet reflectivity coefficients loaded from a satellite geometry file. Error dropped to 1.4 cm for the same object.
+
+The second issue was **GPU memory layout for the state history buffer**. An array-of-structures layout (one struct per satellite, all timesteps contiguous) caused L2 cache thrashing when the conjunction screener accessed the same timestep across all satellites. Transposing to structure-of-arrays — all satellite positions at timestep T contiguous — improved conjunction screening throughput by 3.8×.

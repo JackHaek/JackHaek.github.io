@@ -1,0 +1,624 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import HeaderComponent from '../../components/header.astro';
+import FooterComponent from '../../components/footer.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((entry) => ({
+    params: { id: entry.id.split('/')[0] },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, category, description, tags, image, imageAlt, publishDate, status, github, demo } = entry.data;
+const slug = entry.id.split('/')[0];
+
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+});
+---
+
+<Layout title={`${title} — Jack Haek`}>
+  <HeaderComponent />
+
+  <main class="project-main">
+
+    <!-- ── Hero ─────────────────────────────────────────────── -->
+    <div class="project-hero" transition:name={`${slug}-img`}>
+      {image && <Image src={image} alt={imageAlt ?? ''} class="hero-img" />}
+      <div class="hero-gradient"></div>
+    </div>
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="project-header" transition:animate="slide">
+      <div class="header-meta">
+        <span class="meta-category">{category}</span>
+        <span class="meta-sep">—</span>
+        <span class="meta-date">{formattedDate}</span>
+        <span class={`meta-status meta-status--${status}`}>{status}</span>
+      </div>
+
+      <h1 class="project-title" transition:name={`${slug}-title`}>{title}</h1>
+      <p class="project-description">{description}</p>
+
+      <div class="header-footer">
+        <ul class="tag-list">
+          {tags.map((tag) => <li class="tag">{tag}</li>)}
+        </ul>
+        <div class="header-links">
+          {github && <a href={github} class="header-link" target="_blank" rel="noopener">Github</a>}
+          {demo   && <a href={demo}   class="header-link" target="_blank" rel="noopener">Live Demo</a>}
+        </div>
+      </div>
+    </div>
+
+    <hr class="header-rule" />
+
+    <!-- ── MDX body ─────────────────────────────────────────── -->
+    <div class="project-content">
+      <Content />
+    </div>
+
+  </main>
+
+  <FooterComponent />
+</Layout>
+
+<style>
+  /* ── Page shell ──────────────────────────────────────────── */
+  .project-main {
+    background: var(--surface);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--space-6) var(--space-20);
+  }
+
+  /* ── Hero ────────────────────────────────────────────────── */
+  .project-hero {
+    position: relative;
+    width: calc(100% + var(--space-6) * 2);
+    margin-left: calc(var(--space-6) * -1);
+    aspect-ratio: 16 / 6;
+    overflow: hidden;
+    background: var(--surface-container-lowest);
+    margin-top: 64px; /* nav clearance */
+  }
+
+  .hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    filter: saturate(0.3);
+  }
+
+  .hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--surface) 0%, transparent 60%);
+  }
+
+  /* ── Project header ──────────────────────────────────────── */
+  .project-header {
+    padding-top: var(--space-10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .meta-category,
+  .meta-date {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .meta-sep {
+    color: var(--surface-container-highest);
+  }
+
+  .meta-date {
+    color: #4a5568;
+  }
+
+  .meta-status {
+    margin-left: auto;
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    border: 1px solid currentColor;
+  }
+
+  .meta-status--active    { color: var(--primary-container); }
+  .meta-status--completed { color: #4a5568; }
+  .meta-status--archived  { color: #64748b; }
+
+  .project-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--on-surface);
+    text-transform: uppercase;
+  }
+
+  .project-description {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 300;
+    line-height: 1.7;
+    color: #b9cac9;
+    max-width: 640px;
+  }
+
+  .header-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  .tag {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    background: var(--surface-container-high);
+    padding: 4px 12px;
+  }
+
+  .header-links {
+    display: flex;
+    gap: var(--space-6);
+    flex-shrink: 0;
+  }
+
+  .header-link {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    transition: opacity var(--duration-base) var(--ease-kinetic);
+  }
+
+  .header-link:hover { opacity: 0.7; }
+
+  .header-rule {
+    border: none;
+    border-top: 1px solid var(--surface-container-high);
+    margin: var(--space-10) 0;
+  }
+
+  /* ── Prose — standard markdown elements ──────────────────── */
+  .project-content :global(h2) {
+    font-family: var(--font-display);
+    font-size: var(--headline-lg);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    margin: var(--space-10) 0 var(--space-4);
+    line-height: 1.2;
+  }
+
+  .project-content :global(h3) {
+    font-family: var(--font-display);
+    font-size: var(--title-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--on-surface);
+    margin: var(--space-8) 0 var(--space-3);
+  }
+
+  .project-content :global(p) {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 300;
+    line-height: 1.75;
+    color: #b9cac9;
+    margin: var(--space-4) 0;
+  }
+
+  .project-content :global(strong) {
+    color: var(--on-surface);
+    font-weight: 600;
+  }
+
+  .project-content :global(a) {
+    color: var(--primary-container);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity var(--duration-base) var(--ease-kinetic);
+  }
+
+  .project-content :global(a:hover) { opacity: 0.75; }
+
+  .project-content :global(code) {
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 0.85em;
+    background: var(--surface-container-high);
+    color: var(--primary-fixed-dim);
+    padding: 2px 6px;
+  }
+
+  .project-content :global(pre) {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--surface-container-high);
+    padding: var(--space-6);
+    overflow-x: auto;
+    margin: var(--space-6) 0;
+  }
+
+  .project-content :global(pre code) {
+    background: none;
+    padding: 0;
+    font-size: var(--body-sm);
+    line-height: 1.6;
+    color: #b9cac9;
+  }
+
+  .project-content :global(ul),
+  .project-content :global(ol) {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 300;
+    line-height: 1.75;
+    color: #b9cac9;
+    padding-left: var(--space-6);
+    margin: var(--space-4) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .project-content :global(li::marker) {
+    color: var(--primary-container);
+  }
+
+  .project-content :global(blockquote) {
+    border-left: 2px solid var(--primary-container);
+    background: rgba(0, 247, 247, 0.04);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-6) 0;
+    font-style: normal;
+  }
+
+  .project-content :global(blockquote p) {
+    margin: 0;
+  }
+
+  .project-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--surface-container-high);
+    margin: var(--space-10) 0;
+  }
+
+  .project-content :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    margin: var(--space-8) 0;
+  }
+
+  /* ── Custom HTML blocks ──────────────────────────────────── */
+
+  /* Section label — <p class="section-label"> */
+  .project-content :global(.section-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    margin: var(--space-10) 0 var(--space-2);
+  }
+
+  /* Callout — <div class="callout"> */
+  .project-content :global(.callout) {
+    border-left: 2px solid var(--primary-container);
+    background: rgba(0, 247, 247, 0.04);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-6) 0;
+    font-family: var(--font-body);
+    font-size: var(--body-md);
+    line-height: 1.7;
+    color: #b9cac9;
+  }
+
+  .project-content :global(.callout p) {
+    margin: 0;
+    font-size: var(--body-md);
+  }
+
+  .project-content :global(.callout strong) {
+    color: var(--primary-container);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Stat grid — <div class="stat-grid"> */
+  .project-content :global(.stat-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-8) 0;
+  }
+
+  .project-content :global(.stat-card) {
+    background: var(--surface-container-low);
+    border-left: 2px solid var(--primary-container);
+    padding: var(--space-5) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .project-content :global(.stat-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+  }
+
+  .project-content :global(.stat-value) {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--on-surface);
+    animation: count-in 1.2s var(--ease-kinetic) both;
+  }
+
+  .project-content :global(.stat-unit) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    color: #4a5568;
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes count-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Architecture diagram — <div class="arch-diagram"> */
+  .project-content :global(.arch-diagram) {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--surface-container-high);
+    padding: var(--space-8);
+    margin: var(--space-8) 0;
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 0.7rem;
+    line-height: 1.6;
+    color: #b9cac9;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .project-content :global(.arch-diagram .highlight) { color: var(--primary-container); }
+  .project-content :global(.arch-diagram .dim)       { color: #4a5568; }
+
+  /* Dev timeline — <div class="dev-timeline"> */
+  .project-content :global(.dev-timeline) {
+    position: relative;
+    padding-left: var(--space-8);
+    margin: var(--space-8) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .project-content :global(.dev-timeline::before) {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--primary-container), transparent);
+  }
+
+  .project-content :global(.timeline-entry) {
+    position: relative;
+    animation: slide-in 0.6s var(--ease-kinetic) both;
+  }
+
+  .project-content :global(.timeline-entry:nth-child(1)) { animation-delay: 0.05s; }
+  .project-content :global(.timeline-entry:nth-child(2)) { animation-delay: 0.15s; }
+  .project-content :global(.timeline-entry:nth-child(3)) { animation-delay: 0.25s; }
+  .project-content :global(.timeline-entry:nth-child(4)) { animation-delay: 0.35s; }
+  .project-content :global(.timeline-entry:nth-child(5)) { animation-delay: 0.45s; }
+
+  .project-content :global(.timeline-entry::before) {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-8) * -1 - 4px);
+    top: 0.4rem;
+    width: 8px;
+    height: 8px;
+    background: var(--primary-container);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 247, 247, 0.6);
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .project-content :global(.timeline-date) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+    margin-bottom: 4px;
+  }
+
+  .project-content :global(.timeline-title) {
+    font-family: var(--font-display);
+    font-size: var(--body-md);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    margin-bottom: 4px;
+  }
+
+  .project-content :global(.timeline-body) {
+    font-family: var(--font-body);
+    font-size: var(--body-md);
+    line-height: 1.65;
+    color: #b9cac9;
+    font-weight: 300;
+  }
+
+  /* Performance bars — <div class="perf-table"> */
+  .project-content :global(.perf-table) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: var(--space-8) 0;
+  }
+
+  .project-content :global(.perf-row) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .project-content :global(.perf-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .project-content :global(.perf-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b9cac9;
+  }
+
+  .project-content :global(.perf-value) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 700;
+    color: var(--primary-container);
+  }
+
+  .project-content :global(.perf-track) {
+    height: 2px;
+    background: var(--surface-container-high);
+    overflow: hidden;
+  }
+
+  .project-content :global(.perf-fill) {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-fixed-dim), var(--primary-container));
+    transform-origin: left;
+    animation: bar-grow 1.4s var(--ease-kinetic) both;
+  }
+
+  @keyframes bar-grow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* Scan-line image — <div class="scan-wrap"> */
+  .project-content :global(.scan-wrap) {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--surface-container-high);
+    margin: var(--space-8) 0;
+  }
+
+  .project-content :global(.scan-wrap img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    filter: saturate(0.2) brightness(0.8);
+  }
+
+  .project-content :global(.scan-line) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(0, 247, 247, 0.8), transparent);
+    animation: scan 3s linear infinite;
+  }
+
+  .project-content :global(.scan-overlay) {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, var(--surface) 100%);
+  }
+
+  @keyframes scan {
+    from { top: 0%; }
+    to   { top: 100%; }
+  }
+
+  /* ── Image breakout — wider than text column ─────────────── */
+  @media (min-width: 1100px) {
+    .project-content :global(img),
+    .project-content :global(.scan-wrap) {
+      width: calc(100% + 200px);
+      margin-left: -100px;
+    }
+
+    /* img inside scan-wrap must not break out a second time */
+    .project-content :global(.scan-wrap img) {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .project-hero {
+      aspect-ratio: 16 / 8;
+    }
+
+    .header-footer {
+      flex-direction: column;
+    }
+  }
+</style>

@@ -1,0 +1,182 @@
+---
+title: "DPDK_NETWORK_FABRIC"
+category: "High-Performance Networking"
+description: "A kernel-bypass network fabric for distributed simulation federations, delivering sub-50µs message latency and 18 Gbps aggregate throughput across 64-node clusters using DPDK and custom zero-copy serialization."
+tags: ["C++20", "DPDK", "RDMA", "Linux", "Network Engineering"]
+featured: false
+publishDate: 2024-11-03
+status: "completed"
+github: "https://github.com/jackjhaek/dpdk-network-fabric"
+---
+
+<p class="section-label">Mission Overview</p>
+
+Standard simulation middleware — DIS over UDP, HLA over TCP — was designed for reliable delivery, not for microsecond latency. When a constructive simulation is ticking at 50 Hz and a live entity update arrives 30ms late, the dead-reckoning correction creates a visible discontinuity. This fabric eliminates that problem by moving all simulation message transport out of the Linux kernel and into DPDK poll-mode drivers running on dedicated CPU cores.
+
+The result is a transport layer that behaves less like a network stack and more like a shared memory bus — with the difference that it operates across 64 geographically distributed simulation nodes.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">p99 Message Latency</span>
+    <span class="stat-value">47</span>
+    <span class="stat-unit">µs end-to-end</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Aggregate Throughput</span>
+    <span class="stat-value">18</span>
+    <span class="stat-unit">Gbps sustained</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Node Count</span>
+    <span class="stat-value">64</span>
+    <span class="stat-unit">concurrent nodes tested</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">CPU Overhead vs. Kernel</span>
+    <span class="stat-value">−68%</span>
+    <span class="stat-unit">cycles per message</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<div class="arch-diagram">
+  ┌──────────────── DPDK NETWORK FABRIC ─────────────────────────┐
+  │                                                               │
+  │  APPLICATION LAYER (per node)                                 │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │  Simulation App  →  Fabric API (C++ header-only)      │   │
+  │  │                                                       │   │
+  │  │  fabric::publish(topic, span<byte> payload)           │   │
+  │  │  fabric::subscribe(topic, callback)                   │   │
+  │  └────────────────────────┬──────────────────────────────┘   │
+  │                           │ zero-copy enqueue                │
+  │                           ▼                                  │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │               FABRIC RUNTIME (pinned cores)           │   │
+  │  │                                                       │   │
+  │  │   TX Core                        RX Core              │   │
+  │  │   ┌──────────────────┐   ┌───────────────────────┐   │   │
+  │  │   │ Topic → multicast│   │ Packet classifier     │   │   │
+  │  │   │ group resolver   │   │ (topic hash → queue)  │   │   │
+  │  │   │ ZeroSer packing  │   │ Subscriber dispatch   │   │   │
+  │  │   │ DPDK tx_burst    │   │ DPDK rx_burst         │   │   │
+  │  │   └────────┬─────────┘   └──────────┬────────────┘   │   │
+  │  └────────────┼──────────────────────── ┼ ───────────────┘   │
+  │               │  DPDK PMD (kernel bypass)│                   │
+  │               ▼                         ▼                    │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │           25GbE NIC (Intel E810)  — hugepages         │   │
+  │  └────────────────────────┬──────────────────────────────┘   │
+  │                           │ 25GbE                            │
+  │                           ▼                                  │
+  │        ════════════════ FABRIC SWITCH ═══════════════════    │
+  │              (64-port 100GbE — multicast-capable)            │
+  │                           │                                  │
+  │               [other 63 simulation nodes]                    │
+  └───────────────────────────────────────────────────────────────┘
+</byte>
+</div>
+
+The fabric exposes a topic-based publish/subscribe API (similar to DDS, without the spec compliance overhead). Topics map to Ethernet multicast groups; the TX core resolves topic names to group MAC addresses at publish time and uses DPDK's `rte_eth_tx_burst` to push frames directly to the NIC without touching the kernel. The RX core runs a continuous poll loop on the same PMD and dispatches received frames to registered subscriber callbacks via a lock-free MPMC queue.
+
+<div class="callout">
+  <strong>Key invariant</strong> — No dynamic memory allocation occurs on the TX or RX hot paths. All packet buffers are drawn from pre-allocated DPDK mempools at startup. This eliminates allocator jitter — a major source of latency outliers in kernel-stack-based transports.
+</div>
+
+---
+
+<p class="section-label">Development Timeline</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Q2 2024 — Phase 0</div>
+    <div class="timeline-title">Baseline Profiling & Requirements</div>
+    <div class="timeline-body">
+      Profiled existing DIS-over-UDP transport on a 16-node cluster using hardware timestamps (PTP-disciplined). Baseline p99: 2.1 ms. Identified three latency contributors: kernel TCP/IP stack (48%), socket buffer copies (31%), IRQ coalescing (21%). Set target of sub-100 µs p99 as the design goal.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q3 2024 — Phase 1</div>
+    <div class="timeline-title">DPDK Poll-Mode Driver Integration</div>
+    <div class="timeline-body">
+      Configured Intel E810 NICs with DPDK 23.11 PMD, 2 MB hugepages, and isolated CPU cores (using isolcpus + rcu_nocbs). First TX/RX loopback test: 31 µs round-trip on a single node. Implemented the ZeroSer format — a fixed-layout binary schema with no per-field size headers, eliminating branch-heavy decode logic.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q4 2024 — Phase 2</div>
+    <div class="timeline-title">Multicast Topology & Routing</div>
+    <div class="timeline-body">
+      Deployed 64-port Arista 7050CX3 switch with IGMP snooping for multicast-group-aware forwarding. Built topic→multicast group resolver with LRU cache to avoid repeated group lookups on the TX hot path. 64-node sustained throughput test: 18 Gbps at 47 µs p99 with zero packet loss over 30 minutes.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q1 2025 — Phase 3</div>
+    <div class="timeline-title">Simulation Middleware Integration</div>
+    <div class="timeline-body">
+      Replaced the UDP transport layer in the LVC Synchronizer with the fabric API. DIS PDU ingestion latency dropped from 1.8 ms p99 to 51 µs p99 — a 35× improvement. The coordinator's dead-reckoning activation rate fell by 62% as a direct result of timelier entity state delivery.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Performance Profile</p>
+
+<div class="perf-table">
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">p99 end-to-end latency (64 nodes)</span>
+      <span class="perf-value">47 µs</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 97%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Sustained aggregate throughput</span>
+      <span class="perf-value">18 Gbps</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 90%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Packet loss (30-min stress test)</span>
+      <span class="perf-value">0.000%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 100%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">CPU cycles / message vs. kernel stack</span>
+      <span class="perf-value">−68%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 82%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">LVC Synchronizer DR activation reduction</span>
+      <span class="perf-value">−62%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 88%;"></div></div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why poll-mode over interrupt-driven?** Interrupts introduce non-deterministic latency: the OS schedules the interrupt handler whenever it chooses, adding 100–800 µs of scheduling jitter. A dedicated poll-mode core burns 100% of one CPU core but delivers deterministic sub-100 µs response times — an acceptable trade for simulation applications where latency predictability matters more than CPU efficiency.
+
+**Why ZeroSer over Cap'n Proto or FlatBuffers?** Both Cap'n Proto and FlatBuffers add a vtable or offset table that requires a pointer dereference per field access. ZeroSer's fixed-layout schema (generated from a DSL at compile time) places every field at a statically known byte offset — field access compiles to a single `mov` instruction. For DIS entity-state PDUs accessed 40,000 times per second, this difference is measurable.
+
+**Why Ethernet multicast over IP multicast?** IP multicast requires IGMP group management and carries the overhead of IP header processing. For a closed simulation network where all nodes are on the same L2 segment, Ethernet-layer multicast with pre-provisioned IGMP snooping eliminates an entire protocol layer and shaves 3–5 µs from the forwarding path.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The trickiest issue was **NUMA topology misalignment**. The DPDK mempool allocated packet buffers from node 0 memory, but the NIC's DMA engine was connected to node 1's PCIe root complex. Every packet buffer access caused a cross-NUMA memory hop (+120 ns). Fixing the mempool allocation to `rte_socket_id()` of the NIC port dropped p99 from 81 µs to 47 µs — a 42% improvement from a single configuration line.
+
+The second issue was **multicast group exhaustion under topic proliferation**. Ethernet supports 2^23 multicast group addresses, but many managed switches limit IGMP snooping table size (the Arista 7050CX3 defaults to 2,048 groups). A simulation federation with fine-grained topics can exhaust this table, causing the switch to flood unknown multicast groups to all ports. Solution: a hierarchical topic namespace that bins topics into at most 512 multicast groups, with the fabric runtime doing a secondary software filter on the RX core.

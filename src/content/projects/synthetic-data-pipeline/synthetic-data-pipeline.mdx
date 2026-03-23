@@ -1,0 +1,181 @@
+---
+title: "SYNTHETIC_DATA_PIPELINE"
+category: "AI / Simulation"
+description: "A deterministic, physics-accurate synthetic data generation platform for autonomous vehicle sensor validation — producing photorealistic LiDAR, radar, and camera datasets at 200× the throughput of physical test drives."
+tags: ["Python", "CUDA", "PhysX", "Docker", "Ray", "ML Infrastructure"]
+featured: false
+publishDate: 2025-05-10
+status: "completed"
+github: "https://github.com/jackjhaek/synthetic-data-pipeline"
+---
+
+<p class="section-label">Mission Overview</p>
+
+Physical test drives are the gold standard for autonomous vehicle validation — and also the bottleneck. A single edge-case scenario (black ice, construction zone, sensor-obscuring precipitation) may require hundreds of hours of driving to accumulate enough labeled examples for reliable ML training. This pipeline inverts that ratio: define the scenario parameters once, press run, and generate millions of labeled sensor frames overnight.
+
+The system combines a deterministic physics engine (NVIDIA PhysX 5) with a path-traced renderer (OptiX 8) and a sensor model layer that accurately reproduces LiDAR return intensity, radar Doppler shift, and camera lens distortion. Every output frame is automatically annotated with ground-truth bounding boxes, depth maps, semantic segmentation masks, and sensor noise metadata.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Throughput</span>
+    <span class="stat-value">200×</span>
+    <span class="stat-unit">vs. physical test drives</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Labeled Frames / Day</span>
+    <span class="stat-value">4.2M</span>
+    <span class="stat-unit">across 32-GPU cluster</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Scenario Coverage</span>
+    <span class="stat-value">1,800+</span>
+    <span class="stat-unit">parametric scenario types</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Replay Determinism</span>
+    <span class="stat-value">100%</span>
+    <span class="stat-unit">bit-exact across hardware</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<div class="arch-diagram">
+  ┌──────────────── SYNTHETIC DATA PIPELINE ─────────────────────┐
+  │                                                               │
+  │  SCENARIO DEFINITION                                          │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │  YAML scenario spec → Scenario Compiler               │   │
+  │  │  • Weather layer  (rain intensity, fog density, ice)  │   │
+  │  │  • Traffic agents (density, aggression, speed dist.)  │   │
+  │  │  • Sensor configs (LiDAR model, radar params, camera) │   │
+  │  │  • Ego trajectory (path, speed profile, maneuvers)    │   │
+  │  └───────────────────────┬───────────────────────────────┘   │
+  │                          │ compiled sim bundle               │
+  │                          ▼                                   │
+  │  ┌───────────────────────────────────────────────────────┐   │
+  │  │         RAY DISTRIBUTED WORKER POOL (32 GPUs)         │   │
+  │  │                                                       │   │
+  │  │  Worker Node                                          │   │
+  │  │  ┌───────────────────────────────────────────────┐   │   │
+  │  │  │  PhysX 5 Deterministic Sim                    │   │   │
+  │  │  │      ↓ rigid body + vehicle dynamics          │   │   │
+  │  │  │  OptiX 8 Path Tracer (sensor rendering)       │   │   │
+  │  │  │      ↓ photon transport per sensor type       │   │   │
+  │  │  │  Sensor Model Layer                           │   │   │
+  │  │  │      LiDAR intensity  │ Radar Doppler          │   │   │
+  │  │  │      Camera (lens+ISP)│ IMU noise              │   │   │
+  │  │  │  Auto-Annotator       │                        │   │   │
+  │  │  │      3D bbox │ seg masks │ depth │ metadata    │   │   │
+  │  │  └───────────────────────────────────────────────┘   │   │
+  │  └───────────────────────┬───────────────────────────────┘   │
+  │                          │ Parquet + binary frame store      │
+  │                          ▼                                   │
+  │  ┌────────────────────────────────────────────────────────┐  │
+  │  │  Dataset Registry (DVC + S3)  ──  Training API (gRPC)  │  │
+  │  └────────────────────────────────────────────────────────┘  │
+  └───────────────────────────────────────────────────────────────┘
+</div>
+
+Determinism is the core invariant: given the same scenario YAML and random seed, every worker node on every hardware generation must produce bit-exact physics and sensor output. This is achieved by fixing PhysX solver substeps, using a seeded PRNG for all stochastic elements (weather particle positions, traffic agent decisions), and pinning the OptiX ray generation kernel launch bounds.
+
+<div class="callout">
+  <strong>Validation gate</strong> — Every new scenario type must pass a domain-gap test before entering the production catalog: a detector trained exclusively on synthetic frames from that scenario must reach ≥92% mAP on a matched real-world validation split. Scenarios that fail are sent back to the sensor model team for calibration.
+</div>
+
+---
+
+<p class="section-label">Development Timeline</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Q3 2024 — Phase 0</div>
+    <div class="timeline-title">Sensor Model Research</div>
+    <div class="timeline-body">
+      Characterized sensor physics for three platforms: Velodyne HDL-64E LiDAR (beam divergence, retroreflection, rain attenuation), TI AWR1843 FMCW radar (Doppler resolution, multipath), and Sony IMX490 camera (HDR tone mapping, CFA interpolation). Built per-sensor calibration rigs to measure real-world response curves.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q4 2024 — Phase 1</div>
+    <div class="timeline-title">Core Rendering Pipeline</div>
+    <div class="timeline-body">
+      Integrated OptiX 8 path tracer with custom BxDF shaders for retroreflective road markings and wet asphalt. LiDAR simulation implemented as a ray-cast kernel returning per-return intensity modeled from the measured reflectance curves. Single-frame render time: 34 ms for a full LiDAR scan + stereo camera pair.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q1 2025 — Phase 2</div>
+    <div class="timeline-title">Distributed Worker Infrastructure</div>
+    <div class="timeline-body">
+      Deployed Ray cluster on a 32-GPU (A10G) EC2 fleet. Scenario bundles dispatched via Ray Tasks; results streamed to S3 in Parquet format. Achieved linear scaling from 1 to 32 GPUs with less than 3% coordination overhead.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Q2 2025 — Phase 3</div>
+    <div class="timeline-title">Domain Gap Validation Loop</div>
+    <div class="timeline-body">
+      Built the automated validation gate: each scenario batch triggers a YOLOv9 training run on synthetic-only data followed by evaluation on a curated real-world holdout set. Results logged to W&B; scenarios below 92% mAP threshold are quarantined and flagged for sensor model review.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Performance Profile</p>
+
+<div class="perf-table">
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Labeled frames generated / day (32 GPU)</span>
+      <span class="perf-value">4.2 M</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 92%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Single-frame render time (LiDAR + stereo)</span>
+      <span class="perf-value">34 ms</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 88%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Detector mAP (synthetic → real transfer)</span>
+      <span class="perf-value">93.4%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 93%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">GPU scaling efficiency (1 → 32 GPUs)</span>
+      <span class="perf-value">97.1%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 97%;"></div></div>
+  </div>
+  <div class="perf-row">
+    <div class="perf-header">
+      <span class="perf-label">Replay determinism (bit-exact)</span>
+      <span class="perf-value">100%</span>
+    </div>
+    <div class="perf-track"><div class="perf-fill" style="width: 100%;"></div></div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why determinism over raw throughput?** The ability to reproduce a specific training example after a model regression is invaluable for debugging. Without determinism, a model failure tied to a specific edge-case frame is unreproducible — you can't bisect the training data. Enforcing bit-exact replay cost approximately 8% throughput compared to a non-deterministic implementation, a trade-off considered worthwhile.
+
+**Why Ray over Kubernetes Jobs?** Scenario batches vary widely in per-frame compute cost (clear day vs. heavy rain with 200 traffic agents). Kubernetes Job-based scheduling assigns fixed GPU slices and wastes capacity when easy scenarios finish early. Ray's dynamic task scheduling rebalances work mid-batch, improving GPU utilization from 71% to 94%.
+
+**Why Parquet for the frame store?** Training pipelines need to slice datasets by scenario type, weather condition, or sensor modality. Parquet's columnar format with predicate pushdown lets the training data loader filter 4.2M frames to a specific subset in under 400 ms without reading the full dataset — critical for rapid ablation studies.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The largest domain gap source was **rain droplet interaction with LiDAR beams**. Our initial model applied a uniform intensity attenuation factor per rainfall rate — but real LiDAR returns in rain show bimodal distributions: strong returns from nearby droplets and attenuated returns from distant objects. Fitting a two-component Gaussian mixture per rainfall intensity bin and sampling from it during render time closed the domain gap from 7.3% to 1.9% for rain scenarios specifically.
+
+The second finding was that **traffic agent behavior diversity matters as much as sensor realism**. Early batches used a single IDM (Intelligent Driver Model) for all agents with randomized parameters. Detectors trained on this data generalized poorly to aggressive cut-in maneuvers. Adding a separate adversarial agent policy trained via a simple RL loop (SUMO + stable-baselines3) produced the rare near-miss scenarios that the real-world validation set contained.

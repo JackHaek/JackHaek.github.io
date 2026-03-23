@@ -1,0 +1,604 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import HeaderComponent from '../../components/header.astro';
+import FooterComponent from '../../components/footer.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((entry) => ({
+    params: { slug: entry.id.split('/')[0] },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, description, tags, image, imageAlt, publishDate, updatedDate } = entry.data;
+const slug = entry.id.split('/')[0];
+
+const formattedDate = publishDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const formattedUpdated = updatedDate?.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<Layout title={`${title} — Jack Haek`}>
+  <HeaderComponent />
+
+  <main class="post-main">
+
+    <!-- ── Hero (only when image is provided) ─────────────────── -->
+    {image && (
+      <div class="post-hero" transition:name={`${slug}-img`}>
+        <Image src={image} alt={imageAlt ?? ''} class="hero-img" />
+        <div class="hero-gradient"></div>
+      </div>
+    )}
+
+    <!-- ── Header ───────────────────────────────────────────────── -->
+    <div class:list={['post-header', { 'post-header--no-hero': !image }]} transition:animate="slide">
+      <div class="post-meta">
+        <time class="meta-date" datetime={publishDate.toISOString()}>{formattedDate}</time>
+        {formattedUpdated && (
+          <span class="meta-updated">Updated {formattedUpdated}</span>
+        )}
+      </div>
+
+      <h1 class="post-title" transition:name={`${slug}-title`}>{title}</h1>
+      <p class="post-lede">{description}</p>
+
+      <ul class="tag-list">
+        {tags.map((tag) => <li class="tag">{tag}</li>)}
+      </ul>
+    </div>
+
+    <hr class="header-rule" />
+
+    <!-- ── MDX body ─────────────────────────────────────────────── -->
+    <div class="post-content">
+      <Content />
+    </div>
+
+  </main>
+
+  <FooterComponent />
+</Layout>
+
+<style>
+  /* ── Page shell ──────────────────────────────────────────────── */
+  .post-main {
+    background: var(--surface);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--space-6) var(--space-20);
+  }
+
+  /* ── Hero ────────────────────────────────────────────────────── */
+  .post-hero {
+    position: relative;
+    width: calc(100% + var(--space-6) * 2);
+    margin-left: calc(var(--space-6) * -1);
+    aspect-ratio: 16 / 5;
+    overflow: hidden;
+    background: var(--surface-container-lowest);
+    margin-top: 64px;
+  }
+
+  .hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+    filter: saturate(0.25);
+  }
+
+  .hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--surface) 0%, transparent 55%);
+  }
+
+  /* ── Post header ─────────────────────────────────────────────── */
+  .post-header {
+    padding-top: var(--space-10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  /* When there's no hero image, add top nav clearance + a cyan rule */
+  .post-header--no-hero {
+    margin-top: 64px;
+    padding-top: var(--space-12);
+    border-top: 1px solid var(--surface-container-high);
+    position: relative;
+  }
+
+  .post-header--no-hero::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 64px;
+    height: 1px;
+    background: var(--primary-container);
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .meta-date {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .meta-updated {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #4a5568;
+  }
+
+  /* Title — sentence case, not all-caps, to read as an article not a system name */
+  .post-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4.5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    color: var(--on-surface);
+  }
+
+  .post-lede {
+    font-family: var(--font-body);
+    font-size: var(--title-sm);
+    font-weight: 300;
+    line-height: 1.65;
+    color: #b9cac9;
+    max-width: 640px;
+    border-left: 2px solid var(--surface-container-highest);
+    padding-left: var(--space-4);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  .tag {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+    background: transparent;
+    border: 1px solid var(--surface-container-highest);
+    padding: 3px 10px;
+  }
+
+  .header-rule {
+    border: none;
+    border-top: 1px solid var(--surface-container-high);
+    margin: var(--space-8) 0;
+  }
+
+  /* ── Prose — standard markdown elements ──────────────────────── */
+  .post-content :global(h2) {
+    font-family: var(--font-display);
+    font-size: var(--headline-md);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--on-surface);
+    margin: var(--space-10) 0 var(--space-3);
+    line-height: 1.25;
+  }
+
+  .post-content :global(h3) {
+    font-family: var(--font-display);
+    font-size: var(--title-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--on-surface);
+    margin: var(--space-8) 0 var(--space-3);
+  }
+
+  .post-content :global(p) {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 300;
+    line-height: 1.8;
+    color: #b9cac9;
+    margin: var(--space-5) 0;
+  }
+
+  .post-content :global(strong) {
+    color: var(--on-surface);
+    font-weight: 600;
+  }
+
+  .post-content :global(a) {
+    color: var(--primary-container);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity var(--duration-base) var(--ease-kinetic);
+  }
+
+  .post-content :global(a:hover) { opacity: 0.75; }
+
+  .post-content :global(code) {
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 0.85em;
+    background: var(--surface-container-high);
+    color: var(--primary-fixed-dim);
+    padding: 2px 6px;
+  }
+
+  .post-content :global(pre) {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--surface-container-high);
+    border-left: 2px solid var(--surface-container-highest);
+    padding: var(--space-6);
+    overflow-x: auto;
+    margin: var(--space-6) 0;
+  }
+
+  .post-content :global(pre code) {
+    background: none;
+    padding: 0;
+    font-size: var(--body-sm);
+    line-height: 1.65;
+    color: #b9cac9;
+  }
+
+  .post-content :global(ul),
+  .post-content :global(ol) {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    font-weight: 300;
+    line-height: 1.8;
+    color: #b9cac9;
+    padding-left: var(--space-6);
+    margin: var(--space-4) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .post-content :global(li::marker) {
+    color: var(--primary-container);
+  }
+
+  .post-content :global(blockquote) {
+    border-left: 2px solid var(--primary-container);
+    background: rgba(0, 247, 247, 0.04);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-6) 0;
+    font-style: italic;
+  }
+
+  .post-content :global(blockquote p) {
+    margin: 0;
+    color: #b9cac9;
+  }
+
+  .post-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--surface-container-high);
+    margin: var(--space-10) 0;
+  }
+
+  .post-content :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    margin: var(--space-8) 0;
+  }
+
+  /* ── Custom HTML blocks ────────────────────────────────────────  */
+
+  /* Section label — <p class="section-label"> */
+  .post-content :global(.section-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+    margin: var(--space-10) 0 var(--space-2);
+  }
+
+  /* Callout — <div class="callout"> */
+  .post-content :global(.callout) {
+    border-left: 2px solid var(--primary-container);
+    background: rgba(0, 247, 247, 0.04);
+    padding: var(--space-4) var(--space-6);
+    margin: var(--space-6) 0;
+    font-family: var(--font-body);
+    font-size: var(--body-md);
+    line-height: 1.7;
+    color: #b9cac9;
+  }
+
+  .post-content :global(.callout p) {
+    margin: 0;
+    font-size: var(--body-md);
+  }
+
+  .post-content :global(.callout strong) {
+    color: var(--primary-container);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Stat grid — <div class="stat-grid"> */
+  .post-content :global(.stat-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-8) 0;
+  }
+
+  .post-content :global(.stat-card) {
+    background: var(--surface-container-low);
+    border-left: 2px solid var(--primary-container);
+    padding: var(--space-5) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .post-content :global(.stat-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+  }
+
+  .post-content :global(.stat-value) {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--on-surface);
+    animation: count-in 1.2s var(--ease-kinetic) both;
+  }
+
+  .post-content :global(.stat-unit) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    color: #4a5568;
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes count-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Architecture diagram — <div class="arch-diagram"> */
+  .post-content :global(.arch-diagram) {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--surface-container-high);
+    padding: var(--space-8);
+    margin: var(--space-8) 0;
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 0.7rem;
+    line-height: 1.6;
+    color: #b9cac9;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .post-content :global(.arch-diagram .highlight) { color: var(--primary-container); }
+  .post-content :global(.arch-diagram .dim)       { color: #4a5568; }
+
+  /* Dev timeline — <div class="dev-timeline"> */
+  .post-content :global(.dev-timeline) {
+    position: relative;
+    padding-left: var(--space-8);
+    margin: var(--space-8) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .post-content :global(.dev-timeline::before) {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--primary-container), transparent);
+  }
+
+  .post-content :global(.timeline-entry) {
+    position: relative;
+    animation: slide-in 0.6s var(--ease-kinetic) both;
+  }
+
+  .post-content :global(.timeline-entry:nth-child(1)) { animation-delay: 0.05s; }
+  .post-content :global(.timeline-entry:nth-child(2)) { animation-delay: 0.15s; }
+  .post-content :global(.timeline-entry:nth-child(3)) { animation-delay: 0.25s; }
+  .post-content :global(.timeline-entry:nth-child(4)) { animation-delay: 0.35s; }
+  .post-content :global(.timeline-entry:nth-child(5)) { animation-delay: 0.45s; }
+
+  .post-content :global(.timeline-entry::before) {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-8) * -1 - 4px);
+    top: 0.4rem;
+    width: 8px;
+    height: 8px;
+    background: var(--primary-container);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 247, 247, 0.6);
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .post-content :global(.timeline-date) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+    margin-bottom: 4px;
+  }
+
+  .post-content :global(.timeline-title) {
+    font-family: var(--font-display);
+    font-size: var(--body-md);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--on-surface);
+    margin-bottom: 4px;
+  }
+
+  .post-content :global(.timeline-body) {
+    font-family: var(--font-body);
+    font-size: var(--body-md);
+    line-height: 1.65;
+    color: #b9cac9;
+    font-weight: 300;
+  }
+
+  /* Performance bars — <div class="perf-table"> */
+  .post-content :global(.perf-table) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: var(--space-8) 0;
+  }
+
+  .post-content :global(.perf-row) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .post-content :global(.perf-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .post-content :global(.perf-label) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b9cac9;
+  }
+
+  .post-content :global(.perf-value) {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 700;
+    color: var(--primary-container);
+  }
+
+  .post-content :global(.perf-track) {
+    height: 2px;
+    background: var(--surface-container-high);
+    overflow: hidden;
+  }
+
+  .post-content :global(.perf-fill) {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-fixed-dim), var(--primary-container));
+    transform-origin: left;
+    animation: bar-grow 1.4s var(--ease-kinetic) both;
+  }
+
+  @keyframes bar-grow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* Scan-line image — <div class="scan-wrap"> */
+  .post-content :global(.scan-wrap) {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--surface-container-high);
+    margin: var(--space-8) 0;
+  }
+
+  .post-content :global(.scan-wrap img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    filter: saturate(0.2) brightness(0.8);
+  }
+
+  .post-content :global(.scan-line) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(0, 247, 247, 0.8), transparent);
+    animation: scan 3s linear infinite;
+  }
+
+  .post-content :global(.scan-overlay) {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, var(--surface) 100%);
+  }
+
+  @keyframes scan {
+    from { top: 0%; }
+    to   { top: 100%; }
+  }
+
+  /* ── Image breakout — wider than text column ──────────────────── */
+  @media (min-width: 1100px) {
+    .post-content :global(img),
+    .post-content :global(.scan-wrap) {
+      width: calc(100% + 200px);
+      margin-left: -100px;
+    }
+
+    .post-content :global(.scan-wrap img) {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────  */
+  @media (max-width: 640px) {
+    .post-hero {
+      aspect-ratio: 16 / 7;
+    }
+  }
+</style>

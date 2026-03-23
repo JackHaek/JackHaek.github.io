@@ -1,0 +1,190 @@
+---
+const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-7946969440b5";
+---
+
+<section class="core-stack" id="stack">
+  <div class="stack-inner">
+
+    <!-- Left: content -->
+    <div class="stack-content">
+      <h2 class="section-title">CORE_STACK</h2>
+
+      <p class="stack-description">
+        Engineered for high-availability. My methodology focuses on
+        <strong>containerized deployment</strong>, low-latency protocols,
+        and hardware-in-the-loop verification for safety-critical aerospace systems.
+      </p>
+
+      <div class="tech-grid">
+        <div class="tech-card">
+          <span class="tech-category">Distributed</span>
+          <span class="tech-name">Kubernetes / Docker</span>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Simulation</span>
+          <span class="tech-name">HLA / DIS / C++</span>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Real-Time</span>
+          <span class="tech-name">RTOS / HIL Testing</span>
+        </div>
+        <div class="tech-card">
+          <span class="tech-category">Telemetry</span>
+          <span class="tech-name">Python / GRPC</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: decorative visual -->
+    <div class="stack-visual" aria-hidden="true">
+      <div class="ring ring--outer"></div>
+      <div class="ring ring--inner"></div>
+      <div class="stack-icon-wrap">
+        <img src={iconUrl} alt="" width="60" height="58" class="stack-icon" />
+        <span class="stack-icon-label">LVC Mesh Control</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .core-stack {
+    background: var(--surface-container-low);
+    padding: var(--space-20) var(--space-6);
+  }
+
+  .stack-inner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 80px;
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ── Left ── */
+  .stack-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    align-self: start;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: var(--display-sm);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--on-surface);
+    line-height: 1.1;
+  }
+
+  .stack-description {
+    font-family: var(--font-body);
+    font-size: var(--body-lg);
+    color: #b9cac9;
+    line-height: 1.5;
+  }
+
+  .stack-description strong {
+    color: var(--on-surface);
+    font-weight: 400;
+  }
+
+  /* Tech grid */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+  }
+
+  .tech-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    background: var(--surface-container-high);
+    border-left: 2px solid var(--primary-container);
+    border-radius: 2px;
+    padding: var(--space-6) 24px var(--space-6) 26px;
+  }
+
+  .tech-category {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-container);
+  }
+
+  .tech-name {
+    font-family: var(--font-display);
+    font-size: var(--body-lg);
+    font-weight: 700;
+    color: var(--on-surface);
+  }
+
+  /* ── Right: decorative visual ── */
+  .stack-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 398px;
+  }
+
+  .ring {
+    position: absolute;
+    border: 1px solid;
+    border-radius: 12px;
+  }
+
+  .ring--inner {
+    width: 300px;
+    height: 300px;
+    border-color: rgba(0, 247, 247, 0.2);
+  }
+
+  .ring--outer {
+    width: 450px;
+    height: 450px;
+    border-color: rgba(58, 74, 73, 0.1);
+  }
+
+  .stack-icon-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    z-index: 1;
+  }
+
+  .stack-icon {
+    display: block;
+  }
+
+  .stack-icon-label {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: #839493;
+    text-align: center;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .stack-inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-12);
+    }
+
+    .stack-visual {
+      display: none;
+    }
+  }
+</style>

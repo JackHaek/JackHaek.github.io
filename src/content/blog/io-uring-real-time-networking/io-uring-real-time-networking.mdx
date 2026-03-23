@@ -1,0 +1,119 @@
+---
+title: "io_uring and the End of the Syscall Tax in Real-Time Systems"
+description: "io_uring rewrites the rules for high-throughput I/O in Linux. For systems that live and die by microsecond latency — like LVC simulation federations — it changes what's achievable on commodity hardware."
+publishDate: 2026-01-22
+tags: ["Linux", "Systems Programming", "Real-Time", "C++", "Networking"]
+draft: false
+---
+
+<p class="section-label">The Problem with Syscalls</p>
+
+Every time a program in user space wants to send or receive data, it crosses a boundary. The CPU switches from user mode to kernel mode, the kernel validates the request, performs the I/O, and switches back. On modern hardware that context switch costs roughly 1–3 microseconds under ideal conditions — and ideal conditions don't exist in production.
+
+For a web server handling HTTP requests, this cost is invisible. For a DIS PDU receiver that needs to drain 40,000 UDP datagrams per second from a multicast group, it's the bottleneck.
+
+The traditional Linux I/O path using `epoll` + `recvmsg` hits a wall at around 20–25K operations per second on a single core, not because the network can't go faster, but because the syscall overhead saturates the CPU before the NIC does. Each `recvmsg` call is a round-trip across the user/kernel boundary. At 40K PDUs/sec that's 40,000 mode switches per second, each one flushing branch predictor state and TLB entries.
+
+```
+epoll_wait()      ← syscall #1: block until data available
+recvmsg()         ← syscall #2: copy data to user buffer
+process()         ← user space work
+repeat
+```
+
+Two syscalls per PDU. 40K PDUs/sec. 80,000 mode switches per second. The CPU spends more time on kernel overhead than on the actual work.
+
+---
+
+<p class="section-label">What io_uring Does Differently</p>
+
+io_uring, introduced in Linux 5.1 by Jens Axboe, takes a fundamentally different approach. Instead of a synchronous call-and-return model, it uses two ring buffers shared between user space and kernel:
+
+- **Submission Queue (SQ)** — user space writes I/O requests here
+- **Completion Queue (CQ)** — kernel writes results here when operations finish
+
+The key insight: user space can submit multiple operations in a single syscall (`io_uring_enter`), or skip the syscall entirely using kernel polling mode (`IORING_SETUP_SQPOLL`), where a kernel thread continuously monitors the SQ without waiting to be asked.
+
+```
+// Submit 64 recv operations in one call
+io_uring_submit(&ring);   ← single syscall (or zero with SQPOLL)
+
+// Later: drain completions
+struct io_uring_cqe *cqe;
+while (io_uring_peek_cqe(&ring, &cqe) == 0) {
+    process(cqe);
+    io_uring_cqe_seen(&ring, cqe);
+}
+```
+
+With `IORING_SETUP_SQPOLL` and pre-registered fixed buffers, the hot path for a UDP receiver becomes **zero syscalls**. User space writes recv requests to the SQ, the kernel polling thread picks them up and submits them to the NIC, and completions appear in the CQ. No mode switches on the data path at all.
+
+<div class="callout">
+  <strong>Measured result</strong> — In the LVC Synchronizer V1 DIS ingestion layer, switching from epoll + recvmsg to io_uring with fixed-buffer registered I/O raised single-core PDU throughput from ~22K/sec to ~40K/sec. The CPU utilization at 40K PDUs/sec with io_uring was lower than at 22K PDUs/sec with epoll.
+</div>
+
+---
+
+<p class="section-label">Fixed Buffers and the Zero-Copy Path</p>
+
+Registered fixed buffers are the second major win. In a traditional recvmsg call, the kernel copies incoming data from the socket buffer into a user-space buffer on every call. At 40K PDUs/sec, that's 40K memory copies per second, each touching cache lines and pushing out existing data.
+
+With io_uring fixed buffers:
+
+```cpp
+// Register buffers once at startup
+struct iovec iov[BUFFER_COUNT];
+for (int i = 0; i < BUFFER_COUNT; i++) {
+    iov[i].iov_base = buffer_pool[i];
+    iov[i].iov_len  = BUFFER_SIZE;
+}
+io_uring_register_buffers(&ring, iov, BUFFER_COUNT);
+
+// Now use IORING_OP_RECV_FIXED — kernel writes directly to registered buffer
+struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+io_uring_prep_recv(sqe, sockfd, buffer_pool[idx], BUFFER_SIZE, 0);
+sqe->buf_index = idx;  // use registered buffer
+sqe->opcode    = IORING_OP_RECV_FIXED;
+```
+
+The kernel knows the physical addresses of the registered buffers and can DMA incoming data directly into them without an intermediate copy. For cache efficiency, you can pin buffers to specific NUMA nodes and arrange them to match your processing pipeline's access pattern.
+
+---
+
+<p class="section-label">Multishot Operations</p>
+
+Linux 5.19 introduced multishot recv (`IORING_RECV_MULTISHOT`), which reduces SQ churn further. Instead of re-submitting a recv request after each completion, a single multishot submission stays active and generates a CQ entry for every incoming packet until explicitly cancelled.
+
+For a DIS multicast receiver that runs continuously, this means:
+
+```
+submit once → receive indefinitely → cancel when shutting down
+```
+
+The SQ is now completely idle on the steady-state hot path. All CPU time goes to processing completions, not managing the I/O ring.
+
+---
+
+<p class="section-label">Latency vs. Throughput Tradeoffs</p>
+
+io_uring optimizes for throughput by batching. Batching trades latency for efficiency — if you wait to accumulate 64 completions before processing, you've reduced syscall overhead by 64× but introduced up to one scheduling interval of additional latency on the first item in the batch.
+
+For high-throughput applications where average latency matters more than tail latency, this is a good trade. For applications with hard real-time constraints — like a simulation federation where a single late PDU can cause a dead-reckoning discontinuity — you need to be careful.
+
+The right configuration for real-time LVC work:
+- Use `IORING_SETUP_SQPOLL` to eliminate submission syscalls
+- Process CQ completions as they arrive rather than batching them (check CQ on every loop iteration)
+- Set the SQPOLL thread's CPU affinity and priority explicitly — an unscheduled kernel polling thread defeats the purpose
+- Use `io_uring_wait_cqe_timeout` with a short timeout rather than blocking indefinitely
+
+The result is near-zero syscall overhead on the fast path while maintaining per-packet processing latency in the low microseconds.
+
+---
+
+<p class="section-label">The Ecosystem in 2025</p>
+
+io_uring has matured significantly. The `liburing` wrapper library makes the API approachable without hand-managing ring offsets. Most major async runtimes have added io_uring backends — Tokio, libuv, and the Java NIO subsystem all have production io_uring support.
+
+The remaining friction is operational: io_uring requires kernel version 5.19+ for the full feature set (multishot, zero-copy send), and some security-hardened environments disable it via `sysctl` due to past CVEs in early kernel versions. If you're deploying on a controlled infrastructure (like a simulation range network), this is a non-issue. If you're shipping software that runs on arbitrary Linux hosts, you need a fallback path.
+
+For real-time simulation work on known hardware, io_uring is no longer experimental — it's the right default for any I/O-bound hot path.

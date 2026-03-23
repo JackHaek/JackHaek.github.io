@@ -1,0 +1,133 @@
+---
+title: "LLMs as Simulation Test Oracles — A Practical Experiment"
+description: "Large language models are surprisingly capable at reasoning about simulation behavior, detecting anomalies in telemetry, and generating edge-case test scenarios. Here's what actually works and where the limits are."
+publishDate: 2026-02-05
+tags: ["AI", "LLM", "M&S", "Testing", "Python"]
+draft: false
+---
+
+<p class="section-label">The Setup</p>
+
+Testing simulation software is uniquely hard. The state space is enormous, the expected behavior is often described in natural language requirements documents rather than formal specifications, and many failure modes are subtle — a dead-reckoning discontinuity that's 0.4 meters off, an entity that disappears for one simulation tick, a time-sync drift that only manifests after 90 minutes of continuous operation.
+
+Traditional test approaches — unit tests, integration tests, regression suites — catch the obvious things. They don't catch the behavior that's technically within spec but physically implausible, or the edge case that only appears when a specific sequence of protocol messages arrives in a specific order under high load.
+
+The question I wanted to answer: **can an LLM serve as a test oracle for simulation telemetry?** Not write the test harness, not generate test data — but look at a stream of simulation state and tell me when something is wrong.
+
+---
+
+<p class="section-label">What "Test Oracle" Means Here</p>
+
+A test oracle is the part of a testing system that decides whether a given output is correct. For deterministic functions, this is easy — you compare output to a known-good expected value. For simulation systems with emergent behavior and physics-constrained state, it's hard. There often isn't a single "correct" output.
+
+What there is: **physical plausibility constraints**. An aircraft can't instantaneously change heading by 90 degrees. A ground vehicle can't teleport 500 meters between simulation ticks. An entity's reported speed can't exceed its platform type's documented maximum.
+
+These constraints live in requirements documents, platform specifications, and the intuitions of experienced simulation engineers. They're rarely encoded in automated tests because translating natural language physical intuition into code is tedious and brittle.
+
+LLMs are trained on exactly this kind of knowledge. The question is whether that knowledge is accessible in a structured enough way to be useful as an automated oracle.
+
+---
+
+<p class="section-label">The Experiment</p>
+
+I extracted one hour of entity state telemetry from a recorded LVC exercise — position, velocity, acceleration, heading, and platform type for 47 entities. I then injected 12 synthetic anomalies:
+
+- 3 instantaneous position jumps (teleportation artifacts)
+- 2 physically impossible velocity spikes
+- 2 heading changes that violated the platform's turn rate limits
+- 2 entity disappearances lasting 2–5 ticks
+- 3 subtle dead-reckoning drift accumulations (correct within one tick, but wrong trend over 30 ticks)
+
+I presented the telemetry as structured JSON to Claude Sonnet and GPT-4o in a few different prompt framings, then measured detection rate and false positive rate.
+
+```python
+prompt = """
+You are reviewing telemetry from an LVC simulation exercise.
+Each record contains: entity_id, timestamp_ms, position_ecef,
+velocity_ned, heading_deg, platform_type.
+
+Platform constraints:
+- F-16: max speed 2,120 km/h, max turn rate 9 deg/sec
+- M1A2: max speed 67 km/h, max turn rate 40 deg/sec at speed
+
+Review the following 30-second window and identify any
+physically implausible state transitions. For each anomaly,
+cite the entity_id, timestamp, and specific constraint violated.
+
+[telemetry data]
+"""
+```
+
+---
+
+<p class="section-label">Results</p>
+
+The results were more nuanced than I expected.
+
+**What worked well:**
+
+The obvious anomalies — teleportation jumps, impossible velocity spikes, entity disappearances — were detected reliably at above 90% across both models. The models correctly cited the specific entity, timestamp, and violated constraint without hallucinating additional fake anomalies. False positive rate on these was near zero.
+
+The heading turn rate violations were caught about 70% of the time. The failures were cases where the turn happened over 3–4 ticks rather than one, and the model didn't accumulate rate-of-change across the window — it evaluated each tick in isolation.
+
+**What didn't work:**
+
+The dead-reckoning drift anomalies were missed almost entirely. These require tracking a trend over 30 ticks and reasoning about whether the accumulated error exceeds a threshold. LLMs are genuinely bad at this — they can identify a drift qualitatively but can't reliably compute whether the accumulated position error over 30 ticks has crossed 0.5 meters. The math isn't the problem; maintaining precise running calculations over a long context is.
+
+<div class="callout">
+  <strong>Finding</strong> — LLMs are effective at detecting anomalies that violate discrete physical constraints (is this value in range? does this state transition violate a known limit?). They are not effective at detecting anomalies that require precise numerical accumulation over time. Use them for the former; use deterministic code for the latter.
+</div>
+
+---
+
+<p class="section-label">A Better Architecture</p>
+
+The experiment suggested a hybrid approach that plays to each component's strengths:
+
+```
+Telemetry stream
+      │
+      ▼
+┌─────────────────────────────┐
+│  Deterministic pre-filter   │
+│  • Per-tick range checks     │
+│  • Numerical drift tracking  │
+│  • Statistical outlier flags │
+└──────────────┬──────────────┘
+               │ Flagged events + context window
+               ▼
+┌─────────────────────────────┐
+│  LLM oracle                 │
+│  • Constraint interpretation │
+│  • Multi-entity correlation  │
+│  • Natural language report  │
+└─────────────────────────────┘
+```
+
+The deterministic layer handles the math — running windows, rate-of-change accumulation, threshold crossings. It generates a stream of candidate anomalies with supporting numerical evidence.
+
+The LLM layer handles the interpretation — is this anomaly physically plausible given the platform type and the surrounding entity context? Could this velocity spike be explained by a legitimate maneuver that the pre-filter doesn't know about? What's the likely root cause?
+
+This architecture gets you the recall of a comprehensive rule-based system and the semantic flexibility of an LLM without asking either to do what it's bad at.
+
+---
+
+<p class="section-label">Scenario Generation</p>
+
+The more immediately practical use of LLMs in simulation testing turned out to be on the input side rather than the output side: **generating edge-case test scenarios**.
+
+A prompt like:
+
+> "Given an HLA federation with 3 simulated F-16s and a live range asset, generate 10 test scenarios that would stress the time-sync coordinator's dead-reckoning logic. Each scenario should specify entity positions, velocities, and the sequence of protocol events that creates the stress condition."
+
+produces scenarios that would take an experienced simulation engineer 30 minutes each to construct manually. The LLM doesn't know the exact wire format, but it understands the problem domain well enough to describe scenarios that a test harness can then instantiate.
+
+The generated scenarios aren't always novel — many are variations of things an experienced tester would think of anyway. But they cover the space more systematically, and occasionally produce genuinely surprising edge cases that slip through because they're too tedious to construct by hand.
+
+---
+
+<p class="section-label">Where This Is Going</p>
+
+The next step I'm exploring is embedding the LLM oracle in the federation's telemetry pipeline as a real-time monitor rather than a post-hoc analysis tool. The latency of a single LLM inference call (200–800ms) is too high for per-tick evaluation, but anomalies in simulation telemetry don't usually resolve in one tick — they persist. A monitor that evaluates a 5-second sliding window every 2 seconds, with the deterministic pre-filter doing the sub-second work, stays within tolerable bounds.
+
+The longer-term question is whether fine-tuning on domain-specific telemetry data — recorded exercises, known anomaly examples, platform specifications — closes the gap on the drift detection failures. I suspect it does, but that's a follow-on experiment.

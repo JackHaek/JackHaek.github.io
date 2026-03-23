@@ -1,0 +1,153 @@
+---
+title: "Cloud-Native HLA — What Running Federation Infrastructure on Kubernetes Actually Looks Like"
+description: "HLA was designed for dedicated range networks, not cloud infrastructure. Moving it to Kubernetes exposes every assumption baked into the standard. Here's what breaks, what adapts, and what's genuinely better."
+publishDate: 2026-02-19
+tags: ["LVC", "HLA", "Kubernetes", "Cloud", "Architecture"]
+draft: false
+---
+
+<p class="section-label">Why Anyone Would Want This</p>
+
+The traditional LVC federation model assumes dedicated hardware: a room full of simulation workstations, a private gigabit LAN, an RTI server on known IP addresses, and a range schedule that gives you a fixed window to set everything up and tear it down.
+
+That model works. It has worked for 30 years. But it doesn't scale the way modern organizations need it to — spinning up a federation for a one-day experiment means provisioning physical hardware weeks in advance, and sharing infrastructure across multiple concurrent exercises is a scheduling and configuration nightmare.
+
+The appeal of Kubernetes is obvious in this context: declarative infrastructure, on-demand scaling, namespaced isolation between concurrent federates, and a deployment model that works the same on-premises and in a cloud region. If you can containerize the components of a federation, you can treat LVC infrastructure like any other cloud workload.
+
+The catch is that HLA was designed with assumptions that Kubernetes doesn't share.
+
+---
+
+<p class="section-label">What the Standard Assumes</p>
+
+HLA (High Level Architecture, IEEE 1516) was designed in the late 1990s for dedicated simulation networks. The standard's time management model — time-constrained, time-regulating federates exchanging Grant and Advance messages through a central RTI — assumes:
+
+- **Low, stable latency** between federates and the RTI (single-digit milliseconds on a LAN)
+- **No transparent load balancing** between RTI instances (federates connect to a specific RTI endpoint)
+- **Persistent TCP connections** for the federate-RTI channel
+- **Multicast for attribute updates** in many RTI implementations
+
+Kubernetes breaks all four of these assumptions in its default configuration.
+
+A pod's IP address changes when it restarts. A service's backend can shift between requests if multiple RTI replicas are running. Multicast is disabled on most cloud provider CNIs. And the scheduler can migrate a pod to a different node mid-exercise if resource pressure requires it.
+
+---
+
+<p class="section-label">What We Changed</p>
+
+Running LVC Synchronizer on Kubernetes required adapting at three layers.
+
+**RTI connectivity.** We replaced the standard RTI connection model with a sidecar proxy that handles reconnection and session restoration transparently. Federates connect to a stable service DNS name rather than a pod IP. The sidecar holds the actual RTI connection and buffers outbound attribute updates during brief reconnects, so a pod restart doesn't cause the federate to leave and rejoin the federation.
+
+```yaml
+# Each simulation pod gets an RTI sidecar
+containers:
+  - name: simulator
+    image: my-simulator:v2
+  - name: rti-sidecar
+    image: rti-proxy:v1
+    env:
+      - name: RTI_ENDPOINT
+        value: rti-service.federation.svc.cluster.local:8989
+      - name: BUFFER_REPLAY_ON_RECONNECT
+        value: "true"
+```
+
+**Multicast replacement.** Cloud CNIs don't support multicast, so we replaced the RTI's multicast attribute update channel with a gRPC fan-out service. The LVC coordinator subscribes to all object class updates and re-publishes to interested federates over persistent gRPC streams. This adds a routing hop and increases attribute update latency by 1–3ms compared to LAN multicast, but it's deterministic and doesn't require any network-level configuration.
+
+**Time management isolation.** HLA time management traffic — Advance, Grant, and Flush Queue Request messages — is extremely latency-sensitive. We dedicated a separate low-latency service mesh path for time management traffic, bypassing the general-purpose service mesh, and pinned the RTI pod and all time-regulating federates to the same Kubernetes node using pod affinity rules.
+
+```yaml
+affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            role: time-regulating
+        topologyKey: kubernetes.io/hostname
+```
+
+This sacrifices the scheduling flexibility that makes Kubernetes attractive, but time management latency is non-negotiable. Everything else can float; the time-sync critical path cannot.
+
+---
+
+<p class="section-label">Scaling the Constructive Layer</p>
+
+Where Kubernetes genuinely earns its keep is in the constructive federate layer — the simulation engines that represent entities not tied to live range assets or human operators.
+
+Constructive federates are stateless in the sense that they can be initialized from a scenario file and their state is continuously published to the federation. If one crashes and restarts, it re-initializes from the last checkpoint and rejoins. This maps naturally to a Kubernetes Deployment with a HorizontalPodAutoscaler.
+
+We use KEDA to scale constructive federate replicas based on entity assignment queue depth:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: constructive-federates
+spec:
+  scaleTargetRef:
+    name: constructive-deployment
+  minReplicaCount: 2
+  maxReplicaCount: 24
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus:9090
+        metricName: entity_queue_depth
+        threshold: "50"
+        query: sum(entity_assignment_queue_depth)
+```
+
+When an exercise scales from 50 to 300 constructive entities, the deployment scales from 2 to 12 pods in about 20 seconds. On physical hardware, adding that simulation capacity would require pre-provisioning and manual configuration.
+
+<div class="callout">
+  <strong>Observed limit</strong> — Autoscaling works well for constructive federates because they're truly stateless at join time. It does not work for virtual federates (human-in-the-loop simulators) or live gateways, which have external dependencies that can't be automatically initialized. Separate those concerns clearly in your deployment model.
+</div>
+
+---
+
+<p class="section-label">The Latency Reality</p>
+
+After all the adaptation work, where does cloud-native HLA land on latency compared to the dedicated LAN baseline?
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Dedicated LAN — RTI round-trip</span>
+    <span class="stat-value">2–4</span>
+    <span class="stat-unit">ms</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">K8s same-node — RTI round-trip</span>
+    <span class="stat-value">3–6</span>
+    <span class="stat-unit">ms</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">K8s cross-node — RTI round-trip</span>
+    <span class="stat-value">6–14</span>
+    <span class="stat-unit">ms</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Time mgmt jitter (same-node)</span>
+    <span class="stat-value">±1.2</span>
+    <span class="stat-unit">ms</span>
+  </div>
+</div>
+
+Same-node performance is close enough to the LAN baseline that it's acceptable for most exercise types. Cross-node latency is borderline — at 14ms you're eating into the lookahead window for time-regulating federates that need to stay ahead of the grant horizon.
+
+The practical lesson: co-locate time-regulating federates and the RTI on the same node (affinity rules above), and let everything else float across the cluster. You trade some scheduling efficiency for acceptable time management performance.
+
+---
+
+<p class="section-label">What This Enables</p>
+
+Once the infrastructure works, the operational benefits are real:
+
+- **Namespaced exercise isolation** — two concurrent exercises run in separate Kubernetes namespaces with no shared state, no network collision, and no manual reconfiguration between them
+- **GitOps deployment** — the entire federation configuration is a Helm chart checked into version control; spinning up a new exercise is a `helm install`, not a manual setup procedure
+- **Observability by default** — Prometheus scraping, Grafana dashboards, and distributed tracing work the same way they do for every other service; you don't need separate range instrumentation
+- **Burst capacity** — a cluster can scale to support an unexpectedly large exercise without pre-provisioning physical hardware
+
+The concession is that the time management critical path requires manual affinity configuration that partially bypasses the scheduler. That's an acceptable tradeoff. The goal was never to make every part of an LVC federation stateless and freely schedulable — it was to bring modern cloud operational practices to the parts of the federation that can benefit from them, while being explicit about the parts that can't.
+
+The next step is evaluating whether a dedicated time management fabric — a custom UDP-based time sync protocol that doesn't rely on HLA's grant/advance model — can replace the current bottleneck entirely and make the node affinity constraint unnecessary. That's a larger research effort, but it would open up true multi-region federation.
