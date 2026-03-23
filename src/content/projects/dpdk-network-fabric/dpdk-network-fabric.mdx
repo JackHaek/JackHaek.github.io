@@ -42,44 +42,6 @@ The result is a transport layer that behaves less like a network stack and more 
 
 <p class="section-label">System Architecture</p>
 
-<div class="arch-diagram">
-  ┌──────────────── DPDK NETWORK FABRIC ─────────────────────────┐
-  │                                                               │
-  │  APPLICATION LAYER (per node)                                 │
-  │  ┌───────────────────────────────────────────────────────┐   │
-  │  │  Simulation App  →  Fabric API (C++ header-only)      │   │
-  │  │                                                       │   │
-  │  │  fabric::publish(topic, span<byte> payload)           │   │
-  │  │  fabric::subscribe(topic, callback)                   │   │
-  │  └────────────────────────┬──────────────────────────────┘   │
-  │                           │ zero-copy enqueue                │
-  │                           ▼                                  │
-  │  ┌───────────────────────────────────────────────────────┐   │
-  │  │               FABRIC RUNTIME (pinned cores)           │   │
-  │  │                                                       │   │
-  │  │   TX Core                        RX Core              │   │
-  │  │   ┌──────────────────┐   ┌───────────────────────┐   │   │
-  │  │   │ Topic → multicast│   │ Packet classifier     │   │   │
-  │  │   │ group resolver   │   │ (topic hash → queue)  │   │   │
-  │  │   │ ZeroSer packing  │   │ Subscriber dispatch   │   │   │
-  │  │   │ DPDK tx_burst    │   │ DPDK rx_burst         │   │   │
-  │  │   └────────┬─────────┘   └──────────┬────────────┘   │   │
-  │  └────────────┼──────────────────────── ┼ ───────────────┘   │
-  │               │  DPDK PMD (kernel bypass)│                   │
-  │               ▼                         ▼                    │
-  │  ┌───────────────────────────────────────────────────────┐   │
-  │  │           25GbE NIC (Intel E810)  — hugepages         │   │
-  │  └────────────────────────┬──────────────────────────────┘   │
-  │                           │ 25GbE                            │
-  │                           ▼                                  │
-  │        ════════════════ FABRIC SWITCH ═══════════════════    │
-  │              (64-port 100GbE — multicast-capable)            │
-  │                           │                                  │
-  │               [other 63 simulation nodes]                    │
-  └───────────────────────────────────────────────────────────────┘
-</byte>
-</div>
-
 The fabric exposes a topic-based publish/subscribe API (similar to DDS, without the spec compliance overhead). Topics map to Ethernet multicast groups; the TX core resolves topic names to group MAC addresses at publish time and uses DPDK's `rte_eth_tx_burst` to push frames directly to the NIC without touching the kernel. The RX core runs a continuous poll loop on the same PMD and dispatches received frames to registered subscriber callbacks via a lock-free MPMC queue.
 
 <div class="callout">

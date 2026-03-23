@@ -2,6 +2,8 @@
 import HeaderComponent from '../components/header.astro';
 import Layout from '../layouts/Layout.astro';
 import FooterComponent from '../components/footer.astro';
+import { Image } from "astro:assets";
+import professionalPhoto from "../assets/professional2.png";
 
 const portraitUrl  = "https://www.figma.com/api/mcp/asset/a2028d3a-e208-4e54-ae3f-c47949b60941";
 const iconLvc      = "https://www.figma.com/api/mcp/asset/cebd3fed-11fa-44a0-af31-72ae7c96c7f5";
@@ -22,7 +24,7 @@ const iconRel      = "https://www.figma.com/api/mcp/asset/3d8487c7-3b1e-4409-a4c
         <div class="photo-col">
           <div class="photo-glow"></div>
           <div class="photo-frame">
-            <img src={portraitUrl} alt="Jack Haek" class="portrait" />
+            <Image src={professionalPhoto} alt="Jack Haek" class="portrait"></Image>
             <div class="portrait-desat" aria-hidden="true"></div>
           </div>
         </div>
@@ -291,7 +293,7 @@ const iconRel      = "https://www.figma.com/api/mcp/asset/3d8487c7-3b1e-4409-a4c
     height: 150%;
     object-fit: cover;
     object-position: top center;
-    margin-top: -25%;
+    margin-top: 0%;
     display: block;
   }
 
@@ -302,6 +304,12 @@ const iconRel      = "https://www.figma.com/api/mcp/asset/3d8487c7-3b1e-4409-a4c
     background: white;
     mix-blend-mode: saturation;
     pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  .photo-frame:hover .portrait-desat {
+    opacity: 0;
   }
 
   /* Bio — cols 6-12 */

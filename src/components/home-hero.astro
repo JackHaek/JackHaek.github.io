@@ -1,5 +1,6 @@
 ---
-const portraitUrl = "https://www.figma.com/api/mcp/asset/7a9666d6-374d-4b15-9a66-9de12035d583";
+import { Image } from "astro:assets";
+import ProfessionalPhoto from "../assets/professional1.png";
 ---
 
 <section class="hero">
@@ -33,7 +34,7 @@ const portraitUrl = "https://www.figma.com/api/mcp/asset/7a9666d6-374d-4b15-9a66
     <div class="hero-photo-wrap">
       <div class="hero-glow"></div>
       <div class="hero-photo-card">
-        <img src={portraitUrl} alt="Jack Haek" class="hero-portrait" />
+        <Image src={ProfessionalPhoto} alt="Jack Haek" class="hero-portrait" ></Image>
         <span class="photo-ref">Ref: LVC_7702</span>
       </div>
     </div>
