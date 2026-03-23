@@ -243,3 +243,36 @@ import dashboardImg from './dashboard.png';
 ```
 
 > Images placed in `public/` are served as-is with no optimisation. Always co-locate images with their MDX file.
+
+---
+
+## Adding a Blog Post
+
+Each directory in `src/content/blog/` becomes a page at `/blog/<directory-name>`.
+
+### 1. Create the directory and file
+
+```
+src/content/blog/my-post/my-post.mdx
+```
+
+The directory name becomes the URL slug: `/blog/my-post`.
+
+### 2. Add frontmatter
+
+```yaml
+---
+title: "Post Title"                          # required — displayed as the page heading
+description: "One sentence summary."         # required — shown in the blog listing card
+publishDate: 2025-06-01                      # required
+updatedDate: 2025-06-15                      # optional — shown if the post was revised
+tags: ["Linux", "C++"]                       # required — rendered as chips in the header
+image: "./hero.jpg"                          # optional — relative to the MDX file
+imageAlt: "Description of image"            # optional
+draft: false                                 # optional, default false — drafts are hidden from the listing
+---
+```
+
+### 3. Write the content
+
+Below the frontmatter, write in standard Markdown. The same HTML layout blocks available in project writeups (`section-label`, `callout`, `stat-grid`, `arch-diagram`, `dev-timeline`, `perf-table`, `scan-wrap`) work in blog posts too — see the **HTML Layout Blocks** section above for reference.
