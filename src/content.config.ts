@@ -33,5 +33,29 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { projects, blog };
+const experience = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/experience' }),
+  schema: z.object({
+    title:     z.string(),
+    company:   z.string(),
+    dateRange: z.string(),
+    badge:     z.string().optional(),
+    tags:      z.array(z.string()),
+    accent:    z.boolean().default(false),
+    order:     z.number(),
+  }),
+});
+
+const education = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/education' }),
+  schema: z.object({
+    institution: z.string(),
+    degree:      z.string(),
+    year:        z.string(),
+    details:     z.array(z.string()).optional(),
+    order:       z.number(),
+  }),
+});
+
+export const collections = { projects, blog, experience, education };
 

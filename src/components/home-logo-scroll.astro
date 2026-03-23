@@ -1,11 +1,14 @@
 ---
-const logoModules = import.meta.glob<{ default: { src: string } }>(
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+const logoModules = import.meta.glob<{ default: ImageMetadata }>(
   '../assets/logos/*.png',
   { eager: true }
 );
 
 const logos = Object.entries(logoModules).map(([path, mod]) => ({
-  src: mod.default.src,
+  img: mod.default,
   alt: path.split('/').pop()!.replace('.png', ''),
 }));
 ---
@@ -13,14 +16,14 @@ const logos = Object.entries(logoModules).map(([path, mod]) => ({
 <section class="logo-scroll">
   <div class="logo-viewport" id="logo-viewport">
     <div class="logo-track" id="logo-track">
-      {logos.map(({ src, alt }) => (
+      {logos.map(({ img, alt }) => (
         <div class="logo-item">
-          <img src={src} alt={alt} draggable="false" />
+          <Image src={img} alt={alt} height={72} draggable="false" />
         </div>
       ))}
-      {logos.map(({ src, alt }) => (
+      {logos.map(({ img, alt }) => (
         <div class="logo-item" aria-hidden="true">
-          <img src={src} alt="" draggable="false" />
+          <Image src={img} alt="" height={72} draggable="false" />
         </div>
       ))}
     </div>
