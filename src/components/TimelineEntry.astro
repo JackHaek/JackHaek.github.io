@@ -48,7 +48,7 @@ const { title, company, dateRange, badge, tags, accent = false } = Astro.props;
     font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #839493;
+    color: var(--text-muted);
   }
 
   .timeline-badge {
@@ -101,7 +101,7 @@ const { title, company, dateRange, badge, tags, accent = false } = Astro.props;
     font-weight: 700;
     letter-spacing: -0.025em;
     text-transform: uppercase;
-    color: white;
+    color: var(--on-surface);
     line-height: 2rem;
   }
 
@@ -119,7 +119,7 @@ const { title, company, dateRange, badge, tags, accent = false } = Astro.props;
     font-size: var(--body-lg);
     font-weight: 400;
     line-height: 26px;
-    color: #b9cac9;
+    color: var(--text-secondary);
     padding-top: var(--space-4);
     margin: 0;
   }

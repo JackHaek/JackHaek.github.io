@@ -2,10 +2,10 @@
 import HeaderComponent from '../components/header.astro';
 import Layout from '../layouts/Layout.astro';
 import FooterComponent from '../components/footer.astro';
+import BlogCard from '../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
 
 const iconSearch = "https://www.figma.com/api/mcp/asset/4f4e548e-8a09-41b9-94df-ef23f6e615f3";
-const iconSend   = "https://www.figma.com/api/mcp/asset/7327cc70-25bb-41aa-bf58-8a68176a731f";
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
@@ -45,10 +45,10 @@ function formatDate(d: Date): string {
     <!-- ── Page Header ────────────────────────────────────────── -->
     <div class="page-header">
       <div class="page-header-text">
-        <h1 class="page-title">KINETIC_INSIGHTS</h1>
+        <h1 class="page-title">FIELD_NOTES</h1>
         <p class="page-subtitle">
-          A technical journal exploring the convergence of physics-based
-          simulation, CUDA acceleration, and high-fidelity digital craftsmanship.
+          Weekly notes on things I'm reading, learning at work, or thinking
+          through. Mostly M&S, infrastructure, and software engineering.
         </p>
       </div>
 
@@ -58,16 +58,16 @@ function formatDate(d: Date): string {
           <input
             type="search"
             class="search-input"
-            placeholder="SEARCH_THE_BLUEPRINT"
+            placeholder="SEARCH"
             aria-label="Search articles"
           />
         </div>
 
         <div class="filter-chips" role="group" aria-label="Filter by category">
-          <button class="filter-chip filter-chip--active">ALL_SYSTEMS</button>
+          <button class="filter-chip filter-chip--active">ALL</button>
           <button class="filter-chip">SIMULATION</button>
-          <button class="filter-chip">GPU_ARCHITECTURE</button>
-          <button class="filter-chip">ALGORITHMS</button>
+          <button class="filter-chip">INFRASTRUCTURE</button>
+          <button class="filter-chip">SOFTWARE</button>
         </div>
       </div>
     </div>
@@ -79,100 +79,24 @@ function formatDate(d: Date): string {
         const type = cardType(i);
         const gCls = gridClass(i);
         const date = formatDate(post.data.publishDate);
-        const img  = post.data.image;
-        const alt  = post.data.imageAlt ?? '';
         return (
           <a href={`/blog/${slug}`} class:list={['art-link', gCls]}>
-
-            {(type === 'featured' || type === 'solo') && (
-              <article class="art art--featured">
-                <div class="art-img-wrap" transition:name={`${slug}-img`}>
-                  {img && <img src={img.src} alt={alt} class="art-img art-img--tall" />}
-                  {img && <div class="art-img-desat" aria-hidden="true"></div>}
-                  <div class="art-overlay art-overlay--featured">
-                    <div class="featured-meta">
-                      <span class="featured-tag">FEATURED_RESEARCH</span>
-                      <span class="chip">{date}</span>
-                    </div>
-                    <h2 class="art-title art-title--xl" transition:name={`${slug}-title`}>
-                      {post.data.title}
-                    </h2>
-                    <p class="art-desc art-desc--lg">{post.data.description}</p>
-                  </div>
-                </div>
-              </article>
-            )}
-
-            {type === 'regular' && (
-              <article class="art art--regular">
-                <div class="art-img-wrap art-img-wrap--short" transition:name={`${slug}-img`}>
-                  {img ? (
-                    <>
-                      <img src={img.src} alt={alt} class="art-img" />
-                      <div class="art-img-desat" aria-hidden="true"></div>
-                    </>
-                  ) : (
-                    <div class="art-no-img">
-                      <span class="no-img-date">{date}</span>
-                    </div>
-                  )}
-                </div>
-                <div class="art-body">
-                  <div class="art-meta">
-                    <span class="art-category">{post.data.tags[0]}</span>
-                  </div>
-                  <h2 class="art-title art-title--md" transition:name={`${slug}-title`}>
-                    {post.data.title}
-                  </h2>
-                  <p class="art-desc">{post.data.description}</p>
-                </div>
-              </article>
-            )}
-
-            {type === 'wide' && (
-              <article class="art art--wide">
-                <div class="art-wide-img" transition:name={`${slug}-img`}>
-                  {img && <img src={img.src} alt={alt} class="art-img art-img--wide-crop" />}
-                  {img && <div class="art-img-desat" aria-hidden="true"></div>}
-                </div>
-                <div class="art-wide-body">
-                  <span class="chip">{post.data.tags[0]}</span>
-                  <h2 class="art-title art-title--lg" transition:name={`${slug}-title`}>
-                    {post.data.title}
-                  </h2>
-                  <p class="art-desc art-desc--wide">{post.data.description}</p>
-                  <ul class="chip-list">
-                    {post.data.tags.map(tag => <li class="chip">{tag}</li>)}
-                  </ul>
-                </div>
-              </article>
-            )}
-
+            <BlogCard
+              type={type}
+              title={post.data.title}
+              description={post.data.description}
+              date={date}
+              tags={post.data.tags}
+              image={post.data.image}
+              imageAlt={post.data.imageAlt}
+              slug={slug}
+            />
           </a>
         );
       })}
     </div>
 
   </main>
-
-  <!-- ── Newsletter floating widget ────────────────────────── -->
-  <aside class="newsletter-widget" aria-label="Newsletter signup">
-    <h2 class="widget-title">System_Update</h2>
-    <p class="widget-desc">
-      Get the latest technical briefs delivered directly to your terminal.
-    </p>
-    <div class="widget-form">
-      <input
-        type="email"
-        class="widget-input"
-        placeholder="EMAIL_ADDRESS"
-        aria-label="Email address"
-      />
-      <button class="widget-btn" aria-label="Subscribe">
-        <img src={iconSend} alt="" width="11" height="9" />
-      </button>
-    </div>
-  </aside>
 
   <FooterComponent />
 </Layout>
@@ -217,7 +141,7 @@ function formatDate(d: Date): string {
     font-size: var(--title-lg);
     font-weight: 400;
     line-height: 1.625;
-    color: #b9cac9;
+    color: var(--text-secondary);
     max-width: 672px;
   }
 
@@ -283,7 +207,7 @@ function formatDate(d: Date): string {
     border-radius: 2px;
     border: none;
     background: var(--surface-container-high);
-    color: #b9cac9;
+    color: var(--text-secondary);
     font-family: var(--font-display);
     font-size: var(--label-sm);
     font-weight: 700;
@@ -334,299 +258,6 @@ function formatDate(d: Date): string {
   .art-big-r { grid-column: 5 / span 8; }
   .art-solo  { grid-column: 1 / -1; }
 
-  /* Shared */
-  .art {
-    background: var(--surface-container-low);
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Image wrappers ── */
-  .art-img-wrap {
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .art--featured .art-img-wrap { height: 452px; }
-  .art-img-wrap--short          { height: 389px; }
-
-  .art-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 178%;
-    object-fit: cover;
-    top: -39%;
-  }
-
-  .art-img--tall {
-    height: 178%;
-    top: -39%;
-    opacity: 0.5;
-  }
-
-  .art-img-desat {
-    position: absolute;
-    inset: 0;
-    background: white;
-    mix-blend-mode: saturation;
-    pointer-events: none;
-  }
-
-  /* Featured overlay */
-  .art-overlay--featured {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      var(--surface) 0%,
-      rgba(19, 19, 22, 0.4) 50%,
-      transparent 100%
-    );
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: var(--space-10);
-    gap: var(--space-4);
-  }
-
-  .featured-meta {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-
-  .featured-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    background: rgba(0, 247, 247, 0.2);
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--primary-fixed-dim);
-  }
-
-  /* ── Article body ── */
-  .art-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-6) var(--space-6) var(--space-8);
-    flex: 1;
-  }
-
-  .art-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-2);
-  }
-
-  .art-category,
-  .art-read {
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #839493;
-  }
-
-  /* Titles */
-  .art-title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    color: var(--on-surface);
-    line-height: 1.2;
-    text-transform: uppercase;
-    letter-spacing: -0.025em;
-  }
-
-  .art-title--xl { font-size: 3rem;    line-height: 1; }
-  .art-title--lg { font-size: 1.875rem; }
-  .art-title--md { font-size: 1.5rem;  }
-
-  /* Descriptions */
-  .art-desc {
-    font-family: var(--font-body);
-    font-size: var(--body-md);
-    font-weight: 400;
-    line-height: 22.75px;
-    color: #b9cac9;
-  }
-
-  .art-desc--lg {
-    font-size: var(--title-lg);
-    line-height: 28px;
-    max-width: 576px;
-  }
-
-  .art-desc--wide {
-    font-size: var(--body-lg);
-    line-height: 24px;
-  }
-
-  /* ── Wide article (split layout) ── */
-  .art--wide {
-    flex-direction: row;
-    overflow: hidden;
-  }
-
-  .art-wide-img {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .art-img--wide-crop {
-    position: absolute;
-    inset: 0;
-    width: 154%;
-    height: 100%;
-    left: -27%;
-    top: 0;
-    object-fit: cover;
-    opacity: 0.6;
-  }
-
-  .art-wide-body {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--space-4);
-    padding: var(--space-10);
-  }
-
-  /* ── Regular card (small positions) ── */
-  .art--regular {
-    flex-direction: column;
-  }
-
-  /* No-image placeholder */
-  .art-no-img {
-    height: 100%;
-    min-height: 180px;
-    background: rgba(0, 247, 247, 0.04);
-    border-bottom: 1px solid rgba(0, 247, 247, 0.08);
-    display: flex;
-    align-items: flex-end;
-    padding: var(--space-6);
-    flex-shrink: 0;
-  }
-
-  .no-img-date {
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    letter-spacing: 0.2em;
-    color: rgba(0, 247, 247, 0.3);
-    text-transform: uppercase;
-  }
-
-  /* Shared chips */
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    background: var(--surface-container-highest);
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #b9cac9;
-  }
-
-  .chip-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    list-style: none;
-  }
-
-  /* ── Newsletter widget ────────────────────────────────────── */
-  .newsletter-widget {
-    position: fixed;
-    bottom: var(--space-6);
-    left: var(--space-6);
-    z-index: 50;
-    max-width: 320px;
-    padding: 25px;
-    background: rgba(42, 42, 45, 0.6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(58, 74, 73, 0.1);
-    box-shadow: var(--shadow-float);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .widget-title {
-    font-family: var(--font-display);
-    font-size: var(--title-lg);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
-    color: var(--primary);
-    line-height: 28px;
-  }
-
-  .widget-desc {
-    font-family: var(--font-body);
-    font-size: var(--body-md);
-    font-weight: 400;
-    line-height: 19.5px;
-    color: #b9cac9;
-  }
-
-  .widget-form {
-    display: flex;
-    align-items: stretch;
-    padding-top: var(--space-2);
-  }
-
-  .widget-input {
-    flex: 1;
-    background: var(--surface-container-lowest);
-    border: none;
-    outline: none;
-    padding: 13px 12px;
-    font-family: var(--font-display);
-    font-size: var(--label-sm);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--on-surface);
-  }
-
-  .widget-input::placeholder {
-    color: #6b7280;
-  }
-
-  .widget-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-2) var(--space-2);
-    background: var(--primary-container);
-    border: none;
-    cursor: pointer;
-    transition: background var(--duration-base) var(--ease-kinetic);
-    width: 36px;
-    flex-shrink: 0;
-  }
-
-  .widget-btn:hover {
-    background: var(--primary-fixed-dim);
-  }
-
   /* ── Responsive ──────────────────────────────────────────── */
   @media (max-width: 1100px) {
     .article-grid {
@@ -639,19 +270,6 @@ function formatDate(d: Date): string {
     .art-sm-l  { grid-column: 1; }
     .art-big-r { grid-column: 2; }
 
-    .art--wide {
-      flex-direction: column;
-    }
-
-    .art-wide-img {
-      height: 320px;
-    }
-
-    .art-img--wide-crop {
-      width: 100%;
-      left: 0;
-      height: 100%;
-    }
   }
 
   @media (max-width: 720px) {
@@ -677,8 +295,5 @@ function formatDate(d: Date): string {
     .art-big-r,
     .art-solo  { grid-column: 1; }
 
-    .newsletter-widget {
-      display: none;
-    }
   }
 </style>

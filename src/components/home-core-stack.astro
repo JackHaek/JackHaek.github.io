@@ -10,9 +10,10 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
       <h2 class="section-title">CORE_STACK</h2>
 
       <p class="stack-description">
-        Engineered for high-availability. My methodology focuses on
-        <strong>containerized deployment</strong>, low-latency protocols,
-        and hardware-in-the-loop verification for safety-critical aerospace systems.
+        The tools I reach for daily.
+        <strong>Containerized infrastructure</strong>, low-latency simulation
+        protocols, and hardware-in-the-loop verification pipelines for
+        safety-critical systems.
       </p>
 
       <div class="tech-grid">
@@ -22,11 +23,11 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
         </div>
         <div class="tech-card">
           <span class="tech-category">Simulation</span>
-          <span class="tech-name">HLA / DIS / C++</span>
+          <span class="tech-name">DIS / C++</span>
         </div>
         <div class="tech-card">
           <span class="tech-category">Real-Time</span>
-          <span class="tech-name">RTOS / HIL Testing</span>
+          <span class="tech-name">SIL / LVC Integration</span>
         </div>
         <div class="tech-card">
           <span class="tech-category">Telemetry</span>
@@ -37,7 +38,6 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
 
     <!-- Right: decorative visual -->
     <div class="stack-visual" aria-hidden="true">
-      <div class="ring ring--outer"></div>
       <div class="ring ring--inner"></div>
       <div class="stack-icon-wrap">
         <img src={iconUrl} alt="" width="60" height="58" class="stack-icon" />
@@ -83,7 +83,7 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
   .stack-description {
     font-family: var(--font-body);
     font-size: var(--body-lg);
-    color: #b9cac9;
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 
@@ -145,15 +145,15 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
     width: 300px;
     height: 300px;
     border-color: rgba(0, 247, 247, 0.2);
+    animation: ring-rotate 18s linear infinite;
   }
 
-  .ring--outer {
-    width: 450px;
-    height: 450px;
-    border-color: rgba(58, 74, 73, 0.1);
+  @keyframes ring-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
   }
 
-  .stack-icon-wrap {
+.stack-icon-wrap {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -172,7 +172,7 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
     font-weight: 400;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: #839493;
+    color: var(--text-muted);
     text-align: center;
   }
 

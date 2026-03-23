@@ -36,6 +36,10 @@
   --on-surface-variant: #c6c5ca;
   --outline-variant:    #46454a;
 
+  /* Secondary text tiers — use these instead of hardcoded grays */
+  --text-secondary: #b9cac9;  /* body descriptions, card text */
+  --text-muted:     #839493;  /* metadata, labels, tertiary content */
+
   /* ── Typography ─────────────────────────────────────────── */
   --font-display: 'Space Grotesk', sans-serif; /* headlines, labels, brand */
   --font-body:    'Inter', sans-serif;          /* body copy, descriptions */
@@ -90,9 +94,6 @@
 }
 
 /* ── 3. Light Mode Overrides ─────────────────────────────── */
-/* Uncomment and populate when adding light mode support.
-   Toggle by adding data-theme="light" to <html>.
-
 [data-theme="light"] {
   --surface:                   #f8f8fc;
   --surface-container-lowest:  #f0f0f4;
@@ -112,10 +113,12 @@
   --on-surface-variant: #46454a;
   --outline-variant:    #c6c5ca;
 
+  --text-secondary: #4a5568;
+  --text-muted:     #6b7280;
+
   --glass-bg:   rgba(248, 248, 252, 0.72);
   --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
-*/
 
 /* ── 4. Base / Reset ─────────────────────────────────────── */
 *,

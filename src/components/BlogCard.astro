@@ -1,0 +1,309 @@
+---
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  type: 'featured' | 'wide' | 'regular' | 'solo';
+  title: string;
+  description: string;
+  date: string;
+  tags: string[];
+  image?: ImageMetadata;
+  imageAlt?: string;
+  slug: string;
+}
+
+const { type, title, description, date, tags, image, imageAlt = '', slug } = Astro.props;
+---
+
+{(type === 'featured' || type === 'solo') && (
+  <article class="art art--featured">
+    <div class="art-img-wrap" transition:name={`${slug}-img`}>
+      {image && <img src={image.src} alt={imageAlt} class="art-img art-img--tall" />}
+      {image && <div class="art-img-desat" aria-hidden="true"></div>}
+      <div class="art-overlay art-overlay--featured">
+        <div class="featured-meta">
+          <span class="featured-tag">FEATURED</span>
+          <span class="chip">{date}</span>
+        </div>
+        <h2 class="art-title art-title--xl" transition:name={`${slug}-title`}>
+          {title}
+        </h2>
+        <p class="art-desc art-desc--lg">{description}</p>
+      </div>
+    </div>
+  </article>
+)}
+
+{type === 'regular' && (
+  <article class="art art--regular">
+    <div class="art-img-wrap art-img-wrap--short" transition:name={`${slug}-img`}>
+      {image ? (
+        <>
+          <img src={image.src} alt={imageAlt} class="art-img" />
+          <div class="art-img-desat" aria-hidden="true"></div>
+        </>
+      ) : (
+        <div class="art-no-img">
+          <span class="no-img-date">{date}</span>
+        </div>
+      )}
+    </div>
+    <div class="art-body">
+      <div class="art-meta">
+        <span class="art-category">{tags[0]}</span>
+      </div>
+      <h2 class="art-title art-title--md" transition:name={`${slug}-title`}>
+        {title}
+      </h2>
+      <p class="art-desc">{description}</p>
+    </div>
+  </article>
+)}
+
+{type === 'wide' && (
+  <article class="art art--wide">
+    <div class="art-wide-img" transition:name={`${slug}-img`}>
+      {image && <img src={image.src} alt={imageAlt} class="art-img art-img--wide-crop" />}
+      {image && <div class="art-img-desat" aria-hidden="true"></div>}
+    </div>
+    <div class="art-wide-body">
+      <span class="chip">{tags[0]}</span>
+      <h2 class="art-title art-title--lg" transition:name={`${slug}-title`}>
+        {title}
+      </h2>
+      <p class="art-desc art-desc--wide">{description}</p>
+      <ul class="chip-list">
+        {tags.map(tag => <li class="chip">{tag}</li>)}
+      </ul>
+    </div>
+  </article>
+)}
+
+<style>
+  /* ── Shared base ────────────────────────────────────────── */
+  .art {
+    background: var(--surface-container-low);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Image wrappers ────────────────────────────────────── */
+  .art-img-wrap {
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .art--featured .art-img-wrap { height: 452px; }
+  .art-img-wrap--short          { height: 389px; }
+
+  .art-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 178%;
+    object-fit: cover;
+    top: -39%;
+  }
+
+  .art-img--tall {
+    height: 178%;
+    top: -39%;
+    opacity: 0.5;
+  }
+
+  .art-img-desat {
+    position: absolute;
+    inset: 0;
+    background: white;
+    mix-blend-mode: saturation;
+    pointer-events: none;
+  }
+
+  /* Featured overlay */
+  .art-overlay--featured {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      var(--surface) 0%,
+      rgba(19, 19, 22, 0.4) 50%,
+      transparent 100%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: var(--space-10);
+    gap: var(--space-4);
+  }
+
+  .featured-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .featured-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: rgba(0, 247, 247, 0.2);
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary-fixed-dim);
+  }
+
+  /* ── Article body ──────────────────────────────────────── */
+  .art-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-6) var(--space-6) var(--space-8);
+    flex: 1;
+  }
+
+  .art-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+
+  .art-category {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* Titles */
+  .art-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--on-surface);
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+  }
+
+  .art-title--xl { font-size: 3rem;     line-height: 1; }
+  .art-title--lg { font-size: 1.875rem; }
+  .art-title--md { font-size: 1.5rem;   }
+
+  /* Descriptions */
+  .art-desc {
+    font-family: var(--font-body);
+    font-size: var(--body-md);
+    font-weight: 400;
+    line-height: 22.75px;
+    color: var(--text-secondary);
+  }
+
+  .art-desc--lg {
+    font-size: var(--title-lg);
+    line-height: 28px;
+    max-width: 576px;
+  }
+
+  .art-desc--wide {
+    font-size: var(--body-lg);
+    line-height: 24px;
+  }
+
+  /* ── Wide article (split layout) ──────────────────────── */
+  .art--wide {
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  .art-wide-img {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .art-img--wide-crop {
+    position: absolute;
+    inset: 0;
+    width: 154%;
+    height: 100%;
+    left: -27%;
+    top: 0;
+    object-fit: cover;
+    opacity: 0.6;
+  }
+
+  .art-wide-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-10);
+  }
+
+  /* ── No-image placeholder ──────────────────────────────── */
+  .art-no-img {
+    height: 100%;
+    min-height: 180px;
+    background: rgba(0, 247, 247, 0.04);
+    border-bottom: 1px solid rgba(0, 247, 247, 0.08);
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-6);
+    flex-shrink: 0;
+  }
+
+  .no-img-date {
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    letter-spacing: 0.2em;
+    color: rgba(0, 247, 247, 0.3);
+    text-transform: uppercase;
+  }
+
+  /* ── Chips ─────────────────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: var(--surface-container-highest);
+    font-family: var(--font-display);
+    font-size: var(--label-sm);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  /* ── Responsive ────────────────────────────────────────── */
+  @media (max-width: 1100px) {
+    .art--wide {
+      flex-direction: column;
+    }
+
+    .art-wide-img {
+      height: 320px;
+    }
+
+    .art-img--wide-crop {
+      width: 100%;
+      left: 0;
+      height: 100%;
+    }
+  }
+</style>

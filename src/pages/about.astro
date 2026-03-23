@@ -36,20 +36,19 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
 
         <!-- Bio -->
         <div class="bio-col">
-          <p class="role-label">Lead LVC Simulation Engineer</p>
+          <p class="role-label">Modeling and Simulation Engineer</p>
 
           <h1 class="bio-name">JACK HAEK.</h1>
 
           <div class="bio-body">
             <p>
-              Synthesizing physical realities through deterministic modeling and
-              cloud-native architectures. I build mission-critical LVC (Live,
-              Virtual, Constructive) environments where scalability meets
-              sub-millisecond precision.
+              Modeling and Simulation Engineer working on Live-Virtual-Constructive
+              (LVC) environments — blending live flight telemetry, virtual simulations,
+              and constructive models into unified training and test systems.
             </p>
             <p>
-              Currently leading simulation-to-flight integration at the
-              intersection of aerospace and autonomous systems.
+              Currently working on simulation-to-flight integration for
+              aerospace and autonomous systems programs.
             </p>
           </div>
 
@@ -101,9 +100,8 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
         <div class="skill-card skill-card--wide skill-card--edu">
           <h3 class="skill-title">Key Domains</h3>
           <p class="skill-desc">
-            Designing systems where correctness and performance are
-            non-negotiable — across simulation, infrastructure, and
-            aerospace domains.
+            Simulation, infrastructure, and aerospace — the areas
+            I spend most of my time in.
           </p>
           <ul class="feature-grid">
             <li class="feature-item">
@@ -130,7 +128,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
           <h3 class="skill-title">Core Performance</h3>
           <ul class="perf-list">
             <li class="perf-item">
-              <span class="perf-label">C++20</span>
+              <span class="perf-label">C++</span>
               <span class="perf-value">Systems</span>
             </li>
             <li class="perf-item">
@@ -140,10 +138,6 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
             <li class="perf-item">
               <span class="perf-label">gRPC / Protobuf</span>
               <span class="perf-value">Comms</span>
-            </li>
-            <li class="perf-item">
-              <span class="perf-label">DPDK / io_uring</span>
-              <span class="perf-value">Networking</span>
             </li>
             <li class="perf-item">
               <span class="perf-label">Python</span>
@@ -157,20 +151,20 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
           <h3 class="skill-title">Reliability</h3>
           <ul class="perf-list">
             <li class="perf-item">
-              <span class="perf-label">Simulation Systems</span>
+              <span class="perf-label">Software Engineering</span>
               <span class="perf-value">6 yrs</span>
             </li>
             <li class="perf-item">
-              <span class="perf-label">Distributed Systems</span>
+              <span class="perf-label">Python</span>
               <span class="perf-value">5 yrs</span>
             </li>
             <li class="perf-item">
-              <span class="perf-label">Cloud-Native / K8s</span>
-              <span class="perf-value">4 yrs</span>
+              <span class="perf-label">C++</span>
+              <span class="perf-value">3 yrs</span>
             </li>
             <li class="perf-item">
-              <span class="perf-label">Real-Time Networking</span>
-              <span class="perf-value">3 yrs</span>
+              <span class="perf-label">Data / ML</span>
+              <span class="perf-value">2 yrs</span>
             </li>
           </ul>
         </div>
@@ -340,7 +334,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
     font-size: 1.5rem;
     font-weight: 400;
     line-height: 2rem;
-    color: #b9cac9;
+    color: var(--text-secondary);
   }
 
   .bio-actions {
@@ -420,7 +414,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
   }
 
   .skill-card--perf {
-    background: #1f1f22;
+    background: var(--surface-container-low);
   }
 
   .skill-card--rel {
@@ -453,7 +447,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
   .skill-desc {
     font-family: var(--font-body);
     font-size: var(--body-lg);
-    color: #b9cac9;
+    color: var(--text-secondary);
     line-height: 24px;
   }
 

@@ -8,7 +8,7 @@ import sun from '../assets/sun.svg';
   <div class="nav-inner">
 
     <a href="/" class="nav-brand" aria-label="Home">
-      KINETIC_BLUEPRINT
+      JACK_HAEK
     </a>
 
     <nav aria-label="Primary navigation">
@@ -33,17 +33,23 @@ import sun from '../assets/sun.svg';
 </header>
 
 <script>
-  const btn = document.getElementById('theme-toggle');
-  const html = document.documentElement;
+  function setupToggle() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.onclick = () => {
+      const isLight = document.documentElement.dataset.theme === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.dataset.theme = 'light';
+        localStorage.setItem('theme', 'light');
+      }
+    };
+  }
 
-  const saved = localStorage.getItem('theme');
-  if (saved === 'light') html.dataset.theme = 'light';
-
-  btn?.addEventListener('click', () => {
-    const isLight = html.dataset.theme === 'light';
-    html.dataset.theme = isLight ? '' : 'light';
-    localStorage.setItem('theme', isLight ? 'dark' : 'light');
-  });
+  setupToggle();
+  document.addEventListener('astro:after-swap', setupToggle);
 </script>
 
 <style>
