@@ -21,7 +21,7 @@ const logos = Object.entries(logoModules).map(([path, mod]) => ({
           <Image src={img} alt={alt} height={72} draggable="false" />
         </div>
       ))}
-      {logos.map(({ img, alt }) => (
+      {logos.map(({ img }) => (
         <div class="logo-item" aria-hidden="true">
           <Image src={img} alt="" height={72} draggable="false" />
         </div>
@@ -110,9 +110,11 @@ const logos = Object.entries(logoModules).map(([path, mod]) => ({
       rafId = null;
     }
 
-    const viewport = document.getElementById('logo-viewport');
-    const track    = document.getElementById('logo-track');
-    if (!viewport || !track) return;
+    const viewportEl = document.getElementById('logo-viewport');
+    const trackEl    = document.getElementById('logo-track');
+    if (!viewportEl || !trackEl) return;
+    const viewport: HTMLElement = viewportEl;
+    const track: HTMLElement    = trackEl;
 
     const items = [...track.querySelectorAll<HTMLElement>('.logo-item')];
 
