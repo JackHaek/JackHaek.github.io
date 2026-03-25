@@ -1,0 +1,127 @@
+---
+title: "NIGHTREIGN_AID"
+category: "Full Stack / Game Tooling"
+description: "A real-time companion app for Elden Ring Nightreign that identifies a run's seed from a few early observations and pushes the full map layout (bosses, circles, castle contents) to a shared dashboard over Server-Sent Events."
+tags: ["Go", "React", "TypeScript", "PostgreSQL", "SSE", "Docker"]
+image: "./Nightreign-hero.png"
+featured: true
+publishDate: 2025-06-15
+status: "completed"
+---
+
+import Mermaid from '../../../components/Mermaid.astro';
+
+<p class="section-label">The Problem</p>
+
+Elden Ring Nightreign is a 3-player roguelite where each run is generated from a fixed **seed** (a numeric value that deterministically initializes everything about the run, so all boss spawns, map layouts, and events are predetermined from the moment you load in). Given the right combination of observable parameters at the start (which nightlord you're fighting, where you spawned, which boss is in a nearby evergaol), you can uniquely identify the seed and know the complete map layout for the rest of the run: night bosses, circle positions, castle contents, special events, all of it.
+
+The terminology worth knowing:
+
+- **Nightlord:** the final boss archetype for the run. There are 8 variants, and which one you're assigned narrows the possible seeds significantly.
+- **Shifting Earth:** an optional map modifier that replaces parts of the terrain and encounter pool with a different zone. One of 5 variants, or none at all.
+- **Evergaol:** a sealed arena scattered around the map, each containing a boss encounter. They're observable early in a run, making them useful as seed identifiers.
+
+The catch is that figuring out the seed during an active run is tedious. You're looking up tables, cross-referencing columns, doing all of this while a circle is closing. The app automates that lookup and pushes the result to a shared screen so everyone in the party can plan without anyone needing to tab out.
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="stat-label">Pattern Columns</span>
+        <span class="stat-value">20</span>
+        <span class="stat-unit">data points resolved per seed</span>
+    </div>
+  <div class="stat-card">
+    <span class="stat-label">Shifting Earth Modifiers</span>
+    <span class="stat-value">5</span>
+    <span class="stat-unit">map variants per nightlord</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Timer Phases</span>
+    <span class="stat-value">4</span>
+    <span class="stat-unit">day/night cycle phases tracked</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<Mermaid chart={`
+flowchart LR
+    subgraph manager [Manager View]
+        sel[Nightlord / Shifting Earth / Evergaol Boss]
+    end
+
+    subgraph be [Go Backend]
+        api[REST API]
+        db[(PostgreSQL map_patterns)]
+        sse[SSE Broker /api/dash]
+        api --- db
+        api --> sse
+    end
+
+    subgraph dash [Dashboard View]
+        display[Seed Map / Bosses / Castle / Timer]
+    end
+
+    manager -->|POST /api/select| api
+    sse -->|mapPattern timeUpdate reset| dash
+`} />
+
+The app splits into two roles. The **Manager** is one player who scouts and inputs what they observe. The **Dashboard** is a read-only view on a second monitor or shared screen that everyone can see. The moment the manager confirms a seed, the dashboard updates instantly over a persistent **SSE** (Server-Sent Events) connection. SSE is a browser-native protocol for one-way HTTP streaming: the server keeps the connection open and pushes events as they happen, so there's no polling and no manual refresh.
+
+<div class="callout">
+  <strong>Progressive narrowing:</strong> The spawn point and evergaol boss dropdowns aren't static lists. When you open them, the Manager view calls the backend to filter down to only the options that are actually consistent with your current nightlord and shifting earth selections. This prevents impossible combinations and makes identification faster.
+</div>
+
+---
+
+<p class="section-label">Development Notes</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 0</div>
+    <div class="timeline-title">Data Wrangling & Schema Design</div>
+    <div class="timeline-body">
+      The community had already documented the seed patterns in a spreadsheet. The first task was getting that into a queryable form. The PostgreSQL (a relational database) schema needed to hold roughly 20 fields per pattern row (nightlord, shifting earth, spawn point, evergaol bosses at 7 locations, night bosses, circle types, castle contents, special events) and support efficient filtering on arbitrary subsets of those columns. The evergaol column lookup uses a safe allowlist map to prevent SQL injection, since column names cannot be parameterized the same way values can in a SQL query.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 1</div>
+    <div class="timeline-title">Go Backend & SSE Broker</div>
+    <div class="timeline-body">
+      Used Go's standard library throughout, with no third-party framework. The SSE broker runs as a **goroutine** (Go's lightweight concurrent execution unit, managed by the Go runtime rather than the OS) with channels for client registration, deregistration, and broadcast. When a new dashboard client connects, it immediately receives the current seed if one is set, so it doesn't start with a blank screen. The broker uses non-blocking sends with a fallback disconnect so a slow dashboard client can't stall the manager's confirm action.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 2</div>
+    <div class="timeline-title">React Frontend</div>
+    <div class="timeline-body">
+      Two pages: Manager and Dashboard. The Manager page handles the progressive filtering: on dropdown open, it fires a POST to either /api/spawn-reduce or /api/boss-reduce and replaces the option list with the filtered results. The Dashboard page opens an EventSource on mount and handles three event types: mapPattern (update displayed seed), timeUpdate (tick the countdown), and reset (clear the display).
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 3</div>
+    <div class="timeline-title">Timer & Docker Compose</div>
+    <div class="timeline-body">
+      The in-game day/night cycle has four phases with specific durations: 4:30 of free exploration, 3:00 of first circle closing, 3:30 of second circle free time, and 3:00 of second circle closing. The timer endpoint fires a goroutine that ticks through these phases and broadcasts second-by-second updates over SSE. The whole stack ships as a **Docker Compose** file (a tool for defining and running multi-container applications from a single YAML config): Nginx serving the Vite-built frontend, the Go backend, and PostgreSQL. The pattern CSV is mapped in via a Docker volume.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why SSE over WebSockets?** The dashboard is purely read-only; it receives events but never sends anything back. SSE is a one-way HTTP stream, which is exactly the right fit. It's simpler to implement in Go's standard library (no upgrade handshake, no framing protocol), and the browser's built-in `EventSource` API handles reconnection automatically if the connection drops.
+
+**Why Go standard library over a framework?** The backend has six endpoints and one goroutine. Reaching for a framework here would mean learning its request lifecycle, middleware conventions, and routing DSL for something that doesn't need any of that. The stdlib `net/http` is straightforward, the code is easy to follow, and there's nothing to debug when things go wrong.
+
+**Why load the CSV into PostgreSQL at startup instead of querying the CSV directly?** It gives you proper indexed queries for free. The progressive filtering endpoints need to run fast enough that the dropdown doesn't feel laggy. Indexing on nightlord, shifting_earth, and spawn_point makes those queries instant. A flat file lookup would require a full scan every time.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The trickiest part was **column injection prevention**. The `GetMapPattern` and `HandleBossReduce` functions need to dynamically select a database column based on which evergaol location the user picked. Column names can't be parameterized the way values can in SQL, so the naive approach of string-formatting the column name directly into a query would be a SQL injection vector. The solution is a `safeColumns` map that translates user-supplied keys to actual column names and explicitly rejects anything not in the map. It's simple, but it's easy to miss in a first pass.
+
+The other thing worth calling out is **SSE reconnection state**. When a new dashboard client connects mid-run, it should see the current seed immediately rather than wait for the next update. The broker handles this by broadcasting the current pattern immediately after registering a new client if a seed is already set. Without this, a client that refreshes mid-run would see a blank screen until the manager makes a new selection, which is frustrating in practice.

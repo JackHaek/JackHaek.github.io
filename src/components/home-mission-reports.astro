@@ -3,9 +3,13 @@ import { getCollection } from 'astro:content';
 import ProjectCard from './ProjectCard.astro';
 
 const allProjects = await getCollection('projects', ({ data }) => data.featured);
+const allBlogPosts = await getCollection('blog', ({ data }) => !data.draft && data.featured);
+
 const projects = allProjects
   .sort((a, b) => b.data.publishDate.getTime() - a.data.publishDate.getTime())
   .slice(0, 3);
+
+const topBlogPost = allBlogPosts[0] ? allBlogPosts[0] : null;
 
 const gridClasses = ['card-large', 'card-small-tr', 'card-small-bl'] as const;
 const titleSizes = ['lg', 'sm', 'sm'] as const;
@@ -39,9 +43,9 @@ const titleSizes = ['lg', 'sm', 'sm'] as const;
       ))}
 
       <ProjectCard
-        variant="research"
+        layout="research"
         category="Active Research"
-        title={"Deterministic Real-Time<br />Networking for Swarm Sim"}
+        title={"Containerized Battlespace for AI Agent Competition"}
         cta="In Progress"
         class="card-wide"
       />

@@ -1,0 +1,115 @@
+---
+interface Props {
+  chart: string;
+}
+const { chart } = Astro.props;
+---
+
+<div class="mermaid-wrap" data-mermaid-chart={chart}></div>
+
+<script>
+  import mermaid from 'mermaid';
+
+  const DARK = {
+    background:          '#0e0e11',
+    mainBkg:             '#222225',
+    primaryColor:        '#222225',
+    primaryTextColor:    '#e3e2e6',
+    primaryBorderColor:  '#46454a',
+    secondaryColor:      '#2a2a2d',
+    tertiaryColor:       '#1b1b1e',
+    lineColor:           '#00dddd',
+    nodeBorder:          '#46454a',
+    clusterBkg:          '#1b1b1e',
+    clusterBorder:       '#46454a',
+    titleColor:          '#e3e2e6',
+    edgeLabelBackground: '#1b1b1e',
+    fontFamily:          'Inter, sans-serif',
+    fontSize:            '18px',
+  };
+
+  const LIGHT = {
+    background:          '#f0f0f4',
+    mainBkg:             '#e4e4e8',
+    primaryColor:        '#e4e4e8',
+    primaryTextColor:    '#1a1a1e',
+    primaryBorderColor:  '#c6c5ca',
+    secondaryColor:      '#dedee2',
+    tertiaryColor:       '#eaeaee',
+    lineColor:           '#00878a',
+    nodeBorder:          '#c6c5ca',
+    clusterBkg:          '#eaeaee',
+    clusterBorder:       '#c6c5ca',
+    titleColor:          '#1a1a1e',
+    edgeLabelBackground: '#eaeaee',
+    fontFamily:          'Inter, sans-serif',
+    fontSize:            '18px',
+  };
+
+  async function renderAll() {
+    const isDark = document.documentElement.dataset.theme !== 'light';
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      htmlLabels: false,
+      themeVariables: isDark ? DARK : LIGHT,
+    });
+
+    const wraps = document.querySelectorAll<HTMLElement>('[data-mermaid-chart]');
+    const nodes: HTMLElement[] = [];
+
+    for (const wrap of wraps) {
+      // Rebuild a fresh pre element every call so re-renders (theme change,
+      // navigation) always start from the original chart text, not stale SVG.
+      wrap.innerHTML = '';
+      const pre = document.createElement('pre');
+      pre.className = 'mermaid';
+      pre.textContent = wrap.dataset.mermaidChart!;
+      wrap.appendChild(pre);
+      nodes.push(pre);
+    }
+
+    if (nodes.length) {
+      await mermaid.run({ nodes, suppressErrors: false });
+      // Mermaid renders SVG inside the <pre> element. Move the SVG directly into
+      // the wrap so that width:100% refers to the flex container, not the <pre>.
+      for (const wrap of wraps) {
+        const svg = wrap.querySelector<SVGElement>('svg');
+        if (svg) {
+          svg.style.width = '100%';
+          svg.style.height = 'auto';
+          wrap.innerHTML = '';
+          wrap.appendChild(svg);
+        }
+      }
+    }
+  }
+
+  // astro:page-load fires on every navigation (including the first load)
+  // when View Transitions is active. Without this, module scripts only run
+  // once and DOMContentLoaded never fires again on soft navigation.
+  document.addEventListener('astro:page-load', renderAll);
+
+  // Re-render when the user toggles dark/light mode.
+  new MutationObserver(renderAll).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+</script>
+
+<style is:global>
+  .mermaid-wrap {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--surface-container-high);
+    padding: var(--space-8);
+    margin: var(--space-8) 0;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .mermaid-wrap svg text {
+    font-size: 18px;
+  }
+</style>

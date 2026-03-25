@@ -1,0 +1,143 @@
+---
+title: "NEURAL_AUDIO_DECORRELATION"
+category: "Machine Learning / Audio DSP"
+description: "A GAN-based model that synthesizes a perceptually distinct second audio channel from mono input, producing naturally wide stereo without the phase artifacts that plague traditional decorrelation methods."
+tags: ["Python", "TensorFlow", "Deep Learning", "Audio DSP", "GANs", "HPC"]
+image: "./hero.png"
+featured: true
+publishDate: 2024-08-20
+status: "completed"
+---
+
+import Mermaid from '../../../components/Mermaid.astro';
+
+<p class="section-label">The Problem</p>
+
+When you play mono audio through stereo speakers, it sounds collapsed, like everything is happening in one point directly in front of you. The obvious fix is to copy the mono signal to both channels, but that doesn't actually sound like stereo. Real stereo recordings have subtle differences between the left and right channels that come from microphone placement, room acoustics, and phase relationships. Without those differences, our ears know something is off.
+
+There are classical DSP (Digital Signal Processing) approaches to decorrelation: all-pass phase filters, Haas delays, and mid/side processing. They all leave audible artifacts. The processed channel sounds like a processed copy, not like a real second source.
+
+The goal here was to train a neural network to learn what natural decorrelation actually sounds like from real stereo music, and apply that learned transformation to arbitrary mono input.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Frequency Bins</span>
+    <span class="stat-value">65</span>
+    <span class="stat-unit">STFT bins processed per frame</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Discriminator Branches</span>
+    <span class="stat-value">8</span>
+    <span class="stat-unit">period + scale discriminators</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Training Data</span>
+    <span class="stat-value">150+</span>
+    <span class="stat-unit">professionally mixed tracks (MUSDB18HQ)</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Architecture</p>
+
+<Mermaid chart={`
+flowchart TD
+    monoIn[Mono Waveform 22050Hz]
+
+    monoIn --> stft[STFT frame=116 hop=58 T x 65 bins]
+    stft --> c2r[Complex2Real T x 130]
+
+    subgraph gen [Generator - Grouped Conv1D K=65 bins]
+        l1[Conv1D filters=Kx16 kernel=40 groups=K - ReLU]
+        l2[Conv1D filters=Kx16 kernel=40 groups=K - ReLU]
+        l3[Conv1D filters=Kx16 kernel=40 groups=K - ReLU]
+        l4[Conv1D filters=Kx2 kernel=40 groups=K]
+        l1 --> l2 --> l3 --> l4
+    end
+
+    c2r --> l1
+    l4 --> r2c[Real2Complex T x 65 bins]
+    r2c --> istft[ISTFT reconstruct waveform]
+    istft --> decorr[Decorrelated Channel]
+
+    monoIn --> ms[M/S Encode]
+    decorr --> ms
+    ms --> leftCh[Left = mono + decorr / 2]
+    ms --> rightCh[Right = mono - decorr / 2]
+`} />
+
+The generator operates entirely in the frequency domain. The mono waveform is first converted to a **STFT** (Short-Time Fourier Transform), which breaks the audio into short overlapping windows and represents each window as a set of complex-valued frequency bins. The 65 bins are then processed by **grouped Conv1D layers** (1D convolutions where each frequency bin gets its own independent filter group) rather than a single shared filter across all frequencies. This lets each frequency band learn its own decorrelation behavior, which matters because high-frequency content decorrelates differently than bass.
+
+The ISTFT (Inverse Short-Time Fourier Transform) at the end converts the processed frequency bins back to a waveform. It's a deterministic mathematical reconstruction, not a learned step.
+
+The **discriminator** is adapted from HiFi-GAN (a state-of-the-art neural audio vocoder known for high-fidelity audio generation), using its multi-period and multi-scale architecture. Five **period discriminators** reshape the audio signal into a 2D grid at different cycle lengths (2, 3, 5, 7, and 11 samples) and apply 2D convolutions, capturing periodic structure at multiple timescales. Three **scale discriminators** evaluate the signal at different downsampling levels. Together, all eight branches give the generator detailed feedback about what makes audio sound real from multiple perspectives.
+
+---
+
+<p class="section-label">Loss Design</p>
+
+Three loss terms pull the generator in different directions, and balancing them was the bulk of the interesting work:
+
+**Coherence loss** is the core decorrelation objective. It computes the normalized cross-correlation between the input and generated channels across **mel-frequency bands** (a frequency scale warped to match human pitch perception, so equal steps feel equally spaced to a listener), then minimizes it. High coherence means the two channels sound similar; the loss penalizes that directly. Without this term, the generator will produce a very high-quality copy of the input, which is the path of least resistance.
+
+**Mel-spectrogram loss** is the timbral fidelity constraint. The generated channel should have roughly the same frequency content as the input. It shouldn't be tonally darker or brighter than the original, and it shouldn't introduce frequency content that wasn't there. This loss compares power spectrograms in mel-frequency space.
+
+**Adversarial loss** is the realism objective. The **GAN** (Generative Adversarial Network) setup has a generator that creates outputs and a discriminator that tries to tell them apart from real recordings. The generator is penalized when the discriminator identifies it correctly, pushing it to produce audio that sounds genuinely real rather than like a filtered copy.
+
+<div class="callout">
+  <strong>Tension between objectives:</strong> Coherence loss and mel loss pull against each other. Mel loss wants the output to match the input's spectral envelope; coherence loss wants it to differ. The weighting ratio (2.5 for coherence, 5.625 for mel) was found through experimentation to balance natural-sounding decorrelation without timbral drift.
+</div>
+
+---
+
+<p class="section-label">Development Notes</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 0</div>
+    <div class="timeline-title">Data Preparation & STFT Pipeline</div>
+    <div class="timeline-body">
+      Preprocessed MUSDB18HQ (a publicly available dataset of 150 professionally recorded and mixed music tracks, originally created for music source separation research) into mono input / stereo target pairs. Settled on a 116-sample STFT frame, which fits cleanly into 128 with 64 frequency bins at 22050 Hz, with a 58-sample hop. Added 160-frame context padding to give the generator lookahead during inference. Verified the STFT round-trip was lossless before building the model.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 1</div>
+    <div class="timeline-title">Generator Architecture</div>
+    <div class="timeline-body">
+      Tried a few generator designs before landing on grouped Conv1D over the STFT. An early attempt using a standard Conv2D over the full spectrogram treated frequency as just another spatial dimension. It worked, but it ignored the structure of STFT data. The grouped design (one filter group per frequency bin) is more physically motivated and learned faster. The Complex2Real and Real2Complex layers interleave the real and imaginary components of each FFT bin so standard Conv1D layers can process them without needing built-in complex-number support.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 2</div>
+    <div class="timeline-title">Discriminator & Loss Balancing</div>
+    <div class="timeline-body">
+      Adapted the HiFi-GAN discriminator from the original PyTorch implementation to TensorFlow/Keras. The PeriodDiscriminator required careful padding logic: the period reshape only works cleanly when the time dimension is divisible by the period, so dynamic zero-padding is added at build time. Loss weight tuning was iterative. Too much coherence loss and the generator produced outputs with severe timbral drift; too little and it learned to return near-copies of the input.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 3</div>
+    <div class="timeline-title">HPC Training & Inference</div>
+    <div class="timeline-body">
+      Trained on ROSIE (a university high-performance computing cluster) using a Dockerized TensorFlow GPU environment. TensorFlow 2.12 didn't include SpectralNormalization in Keras yet, so a custom implementation was included for portability. The inference script saves paired mono/stereo WAV files with the log-mel spectrogram difference in the filename for easy perceptual evaluation.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why frequency-domain generation instead of waveform-domain?** Working directly on waveforms (as WaveNet or HiFi-GAN do for synthesis) means the model must learn to produce 22,050 samples per second of coherent audio, a difficult temporal dependency problem. Operating on STFT bins instead lets the model work with a much more compact representation, and the grouped convolution structure means each frequency band can be learned independently. The ISTFT at the end is a deterministic reconstruction, not a learned step.
+
+**Why M/S (Mid/Side) encoding for the output?** M/S is a stereo encoding where $\text{left} = \frac{\text{mid} + \text{side}}{2}$ and $\text{right} = \frac{\text{mid} - \text{side}}{2}$. The "mid" channel captures what's common to both ears; the "side" channel captures the difference. For this task, the mid channel is just the original mono input, and the side channel is the decorrelated output from the generator. This guarantees the result is centered correctly; you're not separately predicting two arbitrary channels and hoping they combine right.
+
+**Why MUSDB18HQ as training data?** It's one of the few publicly available datasets of full-mix professionally recorded stereo music with clean separation between train/valid/test splits. Real stereo recordings are the ground truth for what natural decorrelation looks like. Using a music dataset means the discriminator learns from genuine stereo, not synthetic or processed content.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The hardest part wasn't the model; it was **verifying audio quality perceptually**. Loss curves going down doesn't mean the audio sounds good. Coherence loss can decrease while the generator learns to produce a channel that is spectrally incoherent but also sounds wrong. The most useful evaluation tool turned out to be saving stereo WAV files at regular checkpoints and just listening. The log-mel spectrogram difference metric in the inference script is a useful secondary signal, but your ears catch things it misses.
+
+The other lesson was about **TF graph tracing and checkpointing**. The `@tf.function` decorator traces the training loop into a static graph, which is fast, but only as long as the model's data structures don't change shape between calls. Adding layers to a `Sequential` inside `build()` by insertion (not append) caused silent checkpointing failures where the checkpoint would save but refuse to restore correctly. Switching to append-only construction fixed it, but tracking down the cause took longer than it should have.

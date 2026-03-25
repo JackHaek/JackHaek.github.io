@@ -1,0 +1,125 @@
+---
+title: "ULTIMATE_TIC_TAC_TOE"
+category: "Full Stack / Game"
+description: "An online multiplayer Ultimate Tic-Tac-Toe game with a Go WebSocket backend, Next.js frontend, real-time board broadcasting, spectator support, in-game chat, and a single-player mode against a random AI opponent."
+tags: ["Go", "Next.js", "TypeScript", "WebSockets"]
+image: "./hero.png"
+featured: true
+publishDate: 2024-11-09
+status: "completed"
+---
+
+import Mermaid from '../../../components/Mermaid.astro';
+
+<p class="section-label">The Problem</p>
+
+Ultimate Tic-Tac-Toe (also called Super Tic-Tac-Toe) is a two-player game built on top of the classic 3x3 grid. The meta-board is a 3x3 arrangement of smaller 3x3 tic-tac-toe boards. You win by claiming three small boards in a row on the meta-board. The catch is the routing rule: wherever you play within a small board determines which small board your opponent must play in next. If you play in the top-right cell of your current board, your opponent's next move must be made on the top-right board of the meta-grid. That constraint is what gives the game its depth.
+
+The goal here was to build a playable online version, with real-time move syncing between players over WebSockets, a shared spectator view, and a single-player mode against a basic AI opponent.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Total Cells</span>
+    <span class="stat-value">81</span>
+    <span class="stat-unit">9 boards of 9 cells each</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Transport</span>
+    <span class="stat-value">WS</span>
+    <span class="stat-unit">WebSocket bidirectional real-time</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Game Modes</span>
+    <span class="stat-value">2</span>
+    <span class="stat-unit">multiplayer + vs AI</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">System Architecture</p>
+
+<Mermaid chart={`
+flowchart LR
+    subgraph frontend [Next.js Frontend]
+        ui[Game UI]
+        ws_client[WebSocket Client]
+        ui --- ws_client
+    end
+
+    subgraph backend [Go Backend]
+        ws_handler[WebSocket Handler]
+        sessions[Session Map]
+        game[UltimateGameBoard]
+        ws_handler --> sessions
+        sessions --> game
+    end
+
+    ws_client -->|UpdateSettings / PlayerMove / Chat| ws_handler
+    ws_handler -->|GameInit / BoardUpdate / ChatMessage| ws_client
+`} />
+
+When a player connects, the server upgrades their HTTP connection to a **WebSocket** (a protocol that keeps a persistent bidirectional connection open between browser and server, unlike standard HTTP request/response), assigns them a UUID, and creates a new **GameSession**. The session holds the board state, both player connections, any spectators, and the turn counter.
+
+Every outgoing message has a `MessageType` field. The server dispatches on this field to handle name updates, game settings, moves, chat, and multiplayer status changes. All game state changes are broadcast immediately to both players and any connected spectators using the same JSON message.
+
+<div class="callout">
+  <strong>Active board enforcement:</strong> After each move, the server sets <code>activeGame</code> on the board to the sub-board index corresponding to where the last piece was played within its local grid. Subsequent move validation checks that the incoming move is in the right sub-board. If that board is already won, <code>activeGame</code> is set to -1, allowing the next player to move anywhere.
+</div>
+
+---
+
+<p class="section-label">Development Notes</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 0</div>
+    <div class="timeline-title">Game Logic</div>
+    <div class="timeline-body">
+      The board is represented as two layers: a <code>TicTacToeBoard</code> struct (a single 3x3 board) and an <code>UltimateGameBoard</code> that holds a 3x3 grid of those smaller boards plus a winner board tracking which sub-boards have been claimed. All 81 cells are addressed using a single integer 0–80, where the row, column within the meta-grid, and position within the local board are all encoded into that one number. The decoder is:
+
+$$\text{row} = \left\lfloor \frac{\text{loc}}{27} \right\rfloor, \quad \text{col} = \left\lfloor \frac{\text{loc}}{9} \right\rfloor \bmod 3, \quad \text{local} = \text{loc} \bmod 9$$
+
+Flattening the address like this makes it easy to pass a single move value over the wire without a more complex coordinate object.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 1</div>
+    <div class="timeline-title">WebSocket Backend</div>
+    <div class="timeline-body">
+      Used gorilla/websocket for connection handling (Go's standard library doesn't include WebSocket support). The message loop reads JSON off the connection, unmarshals to a base <code>standardMessage</code> struct to read the type field, then unmarshals again into the appropriate typed struct for that message. Sessions are stored in a global map keyed by session UUID. UUID verification is done on every message that modifies state: the UUID sent in the message is checked against the UUID registered for that WebSocket connection. Mismatches are logged and the message is dropped.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 2</div>
+    <div class="timeline-title">Next.js Frontend</div>
+    <div class="timeline-body">
+      The frontend is a Next.js app with a single game page rendered per session. The board renders 9 sub-boards, each with 9 clickable cells. The active sub-board is highlighted so it's clear where moves are constrained. Incoming <code>boardUpdate</code> messages carry the full flattened 81-element board array and the winner board, which the client uses to rebuild the display from scratch on each update rather than attempting incremental patching.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Phase 3</div>
+    <div class="timeline-title">Single-Player Mode and Spectators</div>
+    <div class="timeline-body">
+      Single-player mode uses a pluggable AI algorithm interface. The only implementation is a random move picker: it reads the list of available moves given the active board constraint and picks one at random. After a human player makes a move, if the session is in single-player mode and the game isn't over, the server immediately generates and applies the AI move before responding. Spectators connect via the join endpoint, get added to the session's spectator map, and receive the same board broadcast messages as active players without being able to make moves.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why WebSockets over polling?** The game needs both players to see moves in real-time. Polling would work, but you'd be making an HTTP request every fraction of a second for the lifetime of the game to check for updates. WebSockets keep the connection alive and push updates the moment they happen, which is the right fit for a live turn-based game.
+
+**Why Go stdlib over a framework?** Same reasoning as the Nightrein project: the backend is simple enough that a framework would add more ceremony than value. The handler logic is a straightforward message dispatch loop. gorilla/websocket handles the WebSocket upgrade; everything else is plain Go.
+
+**Why send the full board state on every update instead of just the last move?** It's simpler and more correct. Sending incremental diffs means the client has to correctly apply every diff in order to stay consistent. Sending the full board means a client that reconnects or misses a message can recover by just using the next update it receives. For a 81-cell board, the payload size difference doesn't matter.
+
+---
+
+<p class="section-label">Lessons Learned</p>
+
+The hardest part of the game logic was getting the active board routing right at edge cases: what happens when a player's move would send the opponent to an already-won or drawn sub-board. The answer (let them play anywhere) sounds simple, but it has to be enforced correctly in `setActiveBoard` and checked in `MakeUltimateMove`, and the condition needs to account for both won and drawn sub-boards since both make that board unavailable.
+
+The double-unmarshal pattern for typed messages (unmarshal once to read the type, then again into the typed struct) is a common Go pattern for discriminated union messages over a single channel. It's not elegant but it's clear. The alternative is a fully generic message with a `json.RawMessage` payload field, which delays the type-specific parsing but adds its own boilerplate. The double-unmarshal won because it's more self-contained per message type.
