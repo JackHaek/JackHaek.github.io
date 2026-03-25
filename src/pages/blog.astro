@@ -64,10 +64,10 @@ function formatDate(d: Date): string {
         </div>
 
         <div class="filter-chips" role="group" aria-label="Filter by category">
-          <button class="filter-chip filter-chip--active">ALL</button>
-          <button class="filter-chip">SIMULATION</button>
-          <button class="filter-chip">INFRASTRUCTURE</button>
-          <button class="filter-chip">SOFTWARE</button>
+          <button class="filter-chip filter-chip--active" data-chip="all">ALL</button>
+          <button class="filter-chip" data-chip="Simulation">SIMULATION</button>
+          <button class="filter-chip" data-chip="Infrastructure">INFRASTRUCTURE</button>
+          <button class="filter-chip" data-chip="Software">SOFTWARE</button>
         </div>
       </div>
     </div>
@@ -80,7 +80,7 @@ function formatDate(d: Date): string {
         const gCls = gridClass(i);
         const date = formatDate(post.data.publishDate);
         return (
-          <a href={`/blog/${slug}`} class:list={['art-link', gCls]}>
+          <a href={`/blog/${slug}`} class:list={['art-link', gCls]} data-filter={post.data.filter} data-title={post.data.title.toLowerCase()} data-desc={post.data.description.toLowerCase()}>
             <BlogCard
               type={type}
               title={post.data.title}
@@ -94,12 +94,106 @@ function formatDate(d: Date): string {
           </a>
         );
       })}
+      <div class="art-empty is-hidden" id="art-empty" aria-live="polite">NOTHING_HERE_YET.</div>
     </div>
 
   </main>
 
   <FooterComponent />
 </Layout>
+
+<script>
+  const ART_CLASSES = ['art-big-l','art-sm-r','art-sm-l','art-big-r','art-solo','art-half-l','art-half-r'];
+  const FADE_MS    = 200;
+  const STAGGER_MS = 45;
+
+  function calcArtClass(i: number, total: number): string {
+    if (total === 1) return 'art-solo';
+    if (total === 2) return i === 0 ? 'art-half-l' : 'art-half-r';
+    if (i === total - 1 && total % 2 === 1) return 'art-solo';
+    const pairEven = Math.floor(i / 2) % 2 === 0;
+    const isFirst  = i % 2 === 0;
+    if (pairEven) return isFirst ? 'art-big-l' : 'art-sm-r';
+    return isFirst ? 'art-sm-l' : 'art-big-r';
+  }
+
+  let activeFilter = 'all';
+  let searchTerm   = '';
+  let filtering    = false;
+
+  async function applyBlogFilter() {
+    if (filtering) return;
+    filtering = true;
+
+    const cards = [...document.querySelectorAll<HTMLElement>('.art-link')];
+    const currentlyVisible = cards.filter(c => !c.classList.contains('is-hidden'));
+
+    // Phase 1: fade out all currently visible cards (skip if nothing to fade)
+    if (currentlyVisible.length > 0) {
+      currentlyVisible.forEach(c => { c.style.opacity = '0'; c.style.transform = 'scale(0.96)'; });
+      await new Promise(r => setTimeout(r, FADE_MS));
+    }
+
+    // Phase 2: update visibility and recalculate grid placement
+    cards.forEach(c => {
+      const catOk  = activeFilter === 'all' || c.dataset.filter === activeFilter;
+      const srchOk = !searchTerm ||
+        (c.dataset.title ?? '').includes(searchTerm) ||
+        (c.dataset.desc  ?? '').includes(searchTerm);
+      const show = catOk && srchOk;
+      if (!show) {
+        c.classList.add('is-hidden');
+        c.style.opacity = '';
+        c.style.transform = '';
+      } else {
+        c.classList.remove('is-hidden');
+      }
+    });
+
+    const visible = cards.filter(c => !c.classList.contains('is-hidden'));
+    visible.forEach((c, i) => {
+      ART_CLASSES.forEach(cls => c.classList.remove(cls));
+      c.classList.add(calcArtClass(i, visible.length));
+      c.style.opacity = '0';
+      c.style.transform = 'translateY(10px) scale(0.97)';
+    });
+
+    // Phase 3: stagger fade-in
+    visible.forEach((c, i) => {
+      setTimeout(() => { c.style.opacity = ''; c.style.transform = ''; }, i * STAGGER_MS);
+    });
+
+    // Empty state
+    const empty = document.getElementById('art-empty');
+    empty?.classList.toggle('is-hidden', visible.length > 0);
+
+    filtering = false;
+  }
+
+  function setupBlog() {
+    const chips  = document.querySelectorAll<HTMLButtonElement>('[data-chip]');
+    const search = document.querySelector<HTMLInputElement>('.search-input');
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('filter-chip--active'));
+        chip.classList.add('filter-chip--active');
+        activeFilter = chip.dataset.chip!;
+        applyBlogFilter();
+      });
+    });
+
+    search?.addEventListener('input', () => {
+      searchTerm = search.value.toLowerCase().trim();
+      applyBlogFilter();
+    });
+
+    // Run once on load to show empty state if there are no posts
+    applyBlogFilter();
+  }
+
+  document.addEventListener('astro:page-load', setupBlog);
+</script>
 
 <style>
   /* ── Page shell ──────────────────────────────────────────── */
@@ -204,7 +298,7 @@ function formatDate(d: Date): string {
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-6);
-    border-radius: 2px;
+    border-radius: 6px;
     border: none;
     background: var(--surface-container-high);
     color: var(--text-secondary);
@@ -257,6 +351,30 @@ function formatDate(d: Date): string {
   .art-sm-l  { grid-column: 1 / span 4; }
   .art-big-r { grid-column: 5 / span 8; }
   .art-solo  { grid-column: 1 / -1; }
+
+  .is-hidden { display: none; }
+
+  /* ── Card animation ──────────────────────────────────────── */
+  .art-link {
+    transition: opacity 0.2s ease, transform 0.25s ease;
+  }
+
+  /* 2-item equal-halves layout */
+  .art-half-l { grid-column: 1 / span 6; }
+  .art-half-r { grid-column: 7 / span 6; }
+
+  /* Empty state */
+  .art-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px var(--space-6);
+    font-family: var(--font-display);
+    font-size: var(--display-sm);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text-secondary);
+    opacity: 0.4;
+  }
 
   /* ── Responsive ──────────────────────────────────────────── */
   @media (max-width: 1100px) {

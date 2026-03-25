@@ -53,8 +53,8 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
           </div>
 
           <div class="bio-actions">
-            <a href="/cv.pdf" class="btn-primary">Download CV</a>
-            <a href="mailto:jackjhaek@gmail.com" class="btn-ghost">Get in Touch</a>
+            <a href="/JackHaekCV.pdf" download class="btn-primary">Download CV</a>
+            <button id="contact-btn" data-open-contact class="btn-ghost">Get in Touch</button>
           </div>
         </div>
 
@@ -193,6 +193,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
   </main>
 
   <FooterComponent />
+
 </Layout>
 
 <style>
@@ -585,4 +586,5 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
       grid-row: auto;
     }
   }
+
 </style>

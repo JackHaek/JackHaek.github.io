@@ -52,10 +52,10 @@ function cardProps(i: number) {
       </div>
 
       <div class="filter-chips" role="group" aria-label="Filter projects">
-        <button class="filter-chip filter-chip--active">All Work</button>
-        <button class="filter-chip">Simulation</button>
-        <button class="filter-chip">Software</button>
-        <button class="filter-chip">Modeling</button>
+        <button class="filter-chip filter-chip--active" data-chip="all">All Work</button>
+        <button class="filter-chip" data-chip="Simulation">Simulation</button>
+        <button class="filter-chip" data-chip="Software">Software</button>
+        <button class="filter-chip" data-chip="Modeling">Modeling</button>
       </div>
     </div>
 
@@ -65,7 +65,7 @@ function cardProps(i: number) {
         const slug = project.id.split('/')[0];
         const { imageHeight, titleSize } = cardProps(i);
         return (
-          <a href={`/projects/${slug}`} class:list={['proj-link', gridClass(i)]}>
+          <a href={`/projects/${slug}`} class:list={['proj-link', gridClass(i)]} data-filter={project.data.filter}>
             <ProjectCard
               layout="gallery"
               category={project.data.category}
@@ -82,6 +82,7 @@ function cardProps(i: number) {
           </a>
         );
       })}
+      <div class="proj-empty is-hidden" id="proj-empty" aria-live="polite">NOTHING_HERE_YET.</div>
     </div>
 
     <!-- ── CTA Section ────────────────────────────────────────── -->
@@ -95,10 +96,10 @@ function cardProps(i: number) {
           Happy to talk through any of these projects — the technical details,
           the tradeoffs, or what I learned along the way.
         </p>
-        <a href="mailto:jackjhaek@gmail.com" class="cta-btn">
+        <button data-open-contact class="cta-btn">
           GET IN TOUCH
           <img src={imgArrow} alt="" width="16" height="16" class="cta-btn-icon" />
-        </a>
+        </button>
       </div>
     </div>
 
@@ -106,6 +107,73 @@ function cardProps(i: number) {
 
   <FooterComponent />
 </Layout>
+
+<script>
+  const PROJ_CLASSES = ['proj-big-l','proj-sm-r','proj-sm-l','proj-big-r','proj-solo','proj-half-l','proj-half-r'];
+  const FADE_MS    = 200;
+  const STAGGER_MS = 45;
+
+  function calcProjClass(i: number, total: number): string {
+    if (total === 1) return 'proj-solo';
+    if (total === 2) return i === 0 ? 'proj-half-l' : 'proj-half-r';
+    if (i === total - 1 && total % 2 === 1) return 'proj-solo';
+    const pairEven = Math.floor(i / 2) % 2 === 0;
+    const isFirst  = i % 2 === 0;
+    if (pairEven) return isFirst ? 'proj-big-l' : 'proj-sm-r';
+    return isFirst ? 'proj-sm-l' : 'proj-big-r';
+  }
+
+  async function applyProjFilter(activeFilter: string) {
+    const cards = [...document.querySelectorAll<HTMLElement>('.proj-link')];
+    const currentlyVisible = cards.filter(c => !c.classList.contains('is-hidden'));
+
+    // Phase 1: fade out all currently visible cards
+    currentlyVisible.forEach(c => { c.style.opacity = '0'; c.style.transform = 'scale(0.96)'; });
+    await new Promise(r => setTimeout(r, FADE_MS));
+
+    // Phase 2: update visibility and recalculate grid placement
+    cards.forEach(c => {
+      const show = activeFilter === 'all' || c.dataset.filter === activeFilter;
+      if (!show) {
+        c.classList.add('is-hidden');
+        c.style.opacity = '';
+        c.style.transform = '';
+      } else {
+        c.classList.remove('is-hidden');
+      }
+    });
+
+    const visible = cards.filter(c => !c.classList.contains('is-hidden'));
+    visible.forEach((c, i) => {
+      PROJ_CLASSES.forEach(cls => c.classList.remove(cls));
+      c.classList.add(calcProjClass(i, visible.length));
+      c.style.opacity = '0';
+      c.style.transform = 'translateY(10px) scale(0.97)';
+    });
+
+    // Phase 3: stagger fade-in
+    visible.forEach((c, i) => {
+      setTimeout(() => { c.style.opacity = ''; c.style.transform = ''; }, i * STAGGER_MS);
+    });
+
+    // Empty state
+    const empty = document.getElementById('proj-empty');
+    empty?.classList.toggle('is-hidden', visible.length > 0);
+  }
+
+  function setupFilters() {
+    const chips = document.querySelectorAll<HTMLButtonElement>('[data-chip]');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('filter-chip--active'));
+        chip.classList.add('filter-chip--active');
+        applyProjFilter(chip.dataset.chip!);
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupFilters);
+</script>
 
 <style>
   /* ── Page shell ──────────────────────────────────────────── */
@@ -164,15 +232,15 @@ function cardProps(i: number) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-2) var(--space-6);
-    border-radius: 12px;
+    padding: var(--space-4) var(--space-6);
+    border-radius: 6px;
     border: none;
     background: var(--surface-container-high);
-    color: var(--on-surface);
+    color: var(--text-secondary);
     font-family: var(--font-display);
     font-size: var(--label-sm);
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     cursor: pointer;
     transition: background var(--duration-base) var(--ease-kinetic),
@@ -208,7 +276,7 @@ function cardProps(i: number) {
   }
 
   .proj-link:hover :global(.project-card) {
-    opacity: 0.85;
+    opacity: 1;
   }
 
   /* Positional placement classes */
@@ -273,12 +341,14 @@ function cardProps(i: number) {
     align-self: flex-start;
     padding: var(--space-4) 40px;
     background: var(--primary-container);
+    border: none;
     color: #006d6d;
     font-family: var(--font-display);
     font-size: var(--label-md);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    cursor: pointer;
     transition: transform var(--duration-base) var(--ease-kinetic),
                 box-shadow var(--duration-base) var(--ease-kinetic);
   }
@@ -291,6 +361,30 @@ function cardProps(i: number) {
   .cta-btn-icon {
     display: block;
     flex-shrink: 0;
+  }
+
+  .is-hidden { display: none; }
+
+  /* ── Card animation ──────────────────────────────────────── */
+  .proj-link {
+    transition: opacity 0.2s ease, transform 0.25s ease;
+  }
+
+  /* 2-item equal-halves layout */
+  .proj-half-l { grid-column: 1 / span 6; }
+  .proj-half-r { grid-column: 7 / span 6; }
+
+  /* Empty state */
+  .proj-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px var(--space-6);
+    font-family: var(--font-display);
+    font-size: var(--display-sm);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text-secondary);
+    opacity: 0.4;
   }
 
   /* ── Responsive ──────────────────────────────────────────── */

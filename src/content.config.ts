@@ -7,6 +7,7 @@ const projects = defineCollection({
   schema: ({ image }) => z.object({
     title: z.string(),
     category: z.string(),
+    filter: z.enum(['Simulation', 'Software', 'Modeling']),
     description: z.string(),
     tags: z.array(z.string()),
     image: image().optional(),
@@ -23,6 +24,7 @@ const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
   schema: ({ image }) => z.object({
     title: z.string(),
+    filter: z.enum(['Simulation', 'Infrastructure', 'Software']),
     description: z.string(),
     publishDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
