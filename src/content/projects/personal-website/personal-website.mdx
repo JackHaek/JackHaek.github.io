@@ -1,0 +1,139 @@
+---
+title: "PORTFOLIO_WEBSITE"
+category: "Web / Design Systems"
+filter: "Software"
+description: "A personal portfolio and blog built with Astro 6, a hand-rolled CSS design system, and MDX-powered content collections. Engineered for performance, typographic precision, and maintainability — no UI frameworks, no Tailwind."
+tags: ["Astro", "TypeScript", "MDX", "CSS", "EmailJS"]
+image: "./hero.png"
+featured: true
+publishDate: 2026-03-25
+status: "active"
+github: "https://github.com/JackHaek/personal-website"
+---
+
+import Mermaid from '../../../components/Mermaid.astro';
+
+<p class="section-label">Overview</p>
+
+Most portfolio sites are wrappers around a template. This one was built to be a design and engineering exercise in its own right — a chance to own every layout decision, every animation, and every token in the system rather than inheriting them from a component library.
+
+The constraints were deliberate: no Tailwind, no UI framework, no pre-built component system. The design language had to come from a hand-written CSS token system, and every interactive behaviour had to be built from scratch with vanilla JS and the browser's native APIs.
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <span class="stat-label">Framework</span>
+    <span class="stat-value">Astro 6</span>
+    <span class="stat-unit">static-first</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">JS Sent to Client</span>
+    <span class="stat-value">Zero</span>
+    <span class="stat-unit">framework JS</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Content Collections</span>
+    <span class="stat-value">4</span>
+    <span class="stat-unit">projects, blog, experience, education</span>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Architecture</p>
+
+<Mermaid chart={`
+flowchart TD
+    subgraph SRC["src/content/"]
+        direction LR
+        P["projects/ MDX"] & B["blog/ MDX"]
+        E["experience/ MDX"] & ED["education/ MDX"]
+    end
+
+    subgraph PAGES["src/pages/"]
+        direction LR
+        IDX["index.astro"] & ABT["about.astro"]
+        PL["projects.astro"] & BL["blog.astro"]
+        PD["[id].astro"] & BD["[slug].astro"]
+    end
+
+    subgraph DIST["dist/"]
+        direction LR
+        HTML["Pre-rendered HTML"] & ASSETS["Optimised assets"]
+    end
+
+    SRC -->|"Content Collections + Zod"| PAGES
+    PAGES -->|"Static generation + View Transitions"| DIST
+`} />
+
+Astro's island architecture means zero framework JavaScript reaches the browser. Every page is pre-rendered HTML at build time. The only client-side JS is hand-written scripts for animations and interactivity — the logo scroll, theme toggle, contact form, filter chips, and scroll-reveal observer.
+
+---
+
+<p class="section-label">Design System</p>
+
+The entire visual language is encoded in CSS custom properties in `global.css`. There is no dependency on an external token library or preprocessor — just a `:root` block that defines every surface, text colour, spacing step, radius, easing curve, and duration used across the site.
+
+<div class="callout">
+  <strong>Constraint:</strong> No colour, spacing, radius, or easing value is hardcoded anywhere in a component. Every value references a token. This keeps light/dark mode correct automatically — swapping the tokens in <code>[data-theme="light"]</code> repaints the whole site.
+</div>
+
+Key token categories:
+
+- **Surfaces** — six tonal steps from `--surface` to `--surface-container-highest`, used to create depth without borders or shadows
+- **Primary / Accent** — a cyan family (`--primary`, `--primary-container`, `--primary-fixed-dim`) used sparingly for CTAs, active states, and highlights
+- **Type scale** — 12 named steps from `--display-lg` down to `--label-sm`, covering every text use case
+- **Spacing** — a named scale (`--space-1` through `--space-20`) rather than arbitrary pixel values
+- **Motion** — three named durations and a single `--ease-kinetic` curve used for all transitions
+
+---
+
+<p class="section-label">Animations</p>
+
+<div class="dev-timeline">
+  <div class="timeline-entry">
+    <div class="timeline-date">Scroll Reveal</div>
+    <div class="timeline-title">IntersectionObserver fade-up</div>
+    <div class="timeline-body">
+      A global IntersectionObserver in <code>Layout.astro</code> watches every element with a <code>data-reveal</code> attribute. When the element enters the viewport, it receives <code>.is-visible</code>, which transitions it from <code>opacity: 0; translateY(20px)</code> to its natural position. Stagger is controlled per-element via <code>data-reveal-delay</code> (milliseconds), applied as an inline <code>transition-delay</code> at the moment of intersection. Elements are unobserved after their first reveal.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Logo Scroll</div>
+    <div class="timeline-title">requestAnimationFrame ticker with colour spotlight</div>
+    <div class="timeline-body">
+      A custom <code>requestAnimationFrame</code> loop advances the logo track by a configurable speed each frame. As a logo approaches the viewport centre it decelerates via a smoothstep function, pauses for ~0.9 s at the centre point, then re-accelerates. The centred logo also receives <code>.logo--active</code>, transitioning it from greyscale to full colour. The loop is cancelled on <code>astro:before-swap</code> and restarted on <code>astro:page-load</code> with fresh DOM references to avoid stale-closure bugs with View Transitions.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">Project Cards</div>
+    <div class="timeline-title">Colour reveal + zoom on hover</div>
+    <div class="timeline-body">
+      Project listing cards are desaturated by default using a <code>mix-blend-mode: saturation</code> overlay (<code>background: white</code>). On hover, the overlay fades out to reveal the image's natural colour, while the underlying image scales up slightly via <code>transform: scale(1.05)</code>. The image is clipped by its <code>overflow: hidden</code> container so the zoom stays contained.
+    </div>
+  </div>
+  <div class="timeline-entry">
+    <div class="timeline-date">View Transitions</div>
+    <div class="timeline-title">Shared-element morphs between listing and detail pages</div>
+    <div class="timeline-body">
+      Astro's <code>ClientRouter</code> enables the View Transitions API across all navigations. Project and blog listing cards share a <code>transition:name</code> with the hero image and title on their respective detail pages, producing a morph animation on navigation rather than a full page flash.
+    </div>
+  </div>
+</div>
+
+---
+
+<p class="section-label">Content Model</p>
+
+Content is managed through four Astro content collections, each with a Zod schema enforced at build time. Invalid frontmatter (wrong type, missing required field, out-of-range enum) fails the build rather than silently rendering broken pages.
+
+The `filter` field on projects and blog posts is a strict enum — `Simulation | Software | Modeling` for projects, `Simulation | Infrastructure | Software` for posts. This field drives the client-side filter chips on each listing page. When a filter is applied, a three-phase animation runs: visible cards fade out, grid placement classes are recalculated based only on the remaining visible items (so a 1-item result gets a full-width layout, 2 items get equal halves, etc.), then cards stagger back in.
+
+---
+
+<p class="section-label">Key Technical Decisions</p>
+
+**Why Astro over Next.js or SvelteKit?** A portfolio is a content site, not an application. Astro's output model — pre-rendered HTML, zero framework JS by default, islands for the bits that need interactivity — matches the problem exactly. Next.js and SvelteKit ship a client runtime on every page whether you need it or not.
+
+**Why no Tailwind?** Utility classes solve repetition at the cost of owning the design system. A custom token system in CSS custom properties is more expressive for this use case: tokens cascade correctly through the DOM, work with `calc()`, compose with `var()`, and adapt to light/dark mode with a single selector override. There is no build step, no purge config, and no class-name vocabulary to memorise.
+
+**Why MDX?** Project writeups need more than Markdown — stat grids, architecture diagrams, performance bars, and development timelines require structured layout that prose alone can't express. MDX allows dropping into HTML blocks for those sections while keeping the rest of the content as plain Markdown. All layout-specific class names are styled globally by the detail page template, so content files stay clean.
