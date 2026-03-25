@@ -2,12 +2,34 @@
 import '../styles/global.css';
 import 'katex/dist/katex.min.css';
 import { ClientRouter } from 'astro:transitions';
+import { getImage } from 'astro:assets';
+import professionalPhoto from '../assets/professional2.png';
 
 interface Props {
-	title: string;
+  title: string;
+  description?: string;
+  ogImage?: string;
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  description = 'Modeling and Simulation Engineer — portfolio, projects, and field notes.',
+  ogImage,
+} = Astro.props;
+
+const defaultOgImg = await getImage({
+  src: professionalPhoto,
+  width: 1200,
+  height: 630,
+  format: 'jpeg',
+  fit: 'cover',
+  position: 'top',
+});
+
+// Use request origin so the URL is correct in dev (localhost), preview, and production
+const origin = Astro.url.origin;
+const ogImageUrl = new URL(ogImage ?? defaultOgImg.src, origin).href;
+const canonicalUrl = new URL(Astro.url.pathname, origin).href;
 ---
 
 <!doctype html>
@@ -23,6 +45,25 @@ const { title } = Astro.props;
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
 		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:site_name" content="Jack Haek" />
+
+		<!-- Twitter / Discord -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImageUrl} />
+
 		<ClientRouter />
 		<script is:inline>
 		  const t = localStorage.getItem('theme');

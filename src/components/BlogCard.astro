@@ -87,6 +87,7 @@ const { type, title, description, date, tags, image, imageAlt = '', slug } = Ast
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--card-shadow);
   }
 
   /* ── Image wrappers ────────────────────────────────────── */
@@ -128,8 +129,8 @@ const { type, title, description, date, tags, image, imageAlt = '', slug } = Ast
     inset: 0;
     background: linear-gradient(
       to top,
-      var(--surface) 0%,
-      rgba(19, 19, 22, 0.4) 50%,
+      var(--img-gradient-stop) 0%,
+      rgba(0, 0, 0, 0.3) 50%,
       transparent 100%
     );
     display: flex;
@@ -307,5 +308,18 @@ const { type, title, description, date, tags, image, imageAlt = '', slug } = Ast
       left: 0;
       height: 100%;
     }
+  }
+
+  /* ── Light mode overrides ────────────────────────────────── */
+  :global([data-theme="light"]) .art-img-desat {
+    opacity: 0;
+  }
+
+  :global([data-theme="light"]) .art-img--tall {
+    opacity: 0.9;
+  }
+
+  :global([data-theme="light"]) .art-img--wide-crop {
+    opacity: 0.85;
   }
 </style>

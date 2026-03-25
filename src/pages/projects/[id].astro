@@ -1,6 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import HeaderComponent from '../../components/header.astro';
 import FooterComponent from '../../components/footer.astro';
@@ -18,13 +18,17 @@ const { Content } = await render(entry);
 const { title, category, description, tags, image, imageAlt, publishDate, status, github, demo } = entry.data;
 const slug = entry.id.split('/')[0];
 
+const ogImg = image
+  ? await getImage({ src: image, width: 1200, height: 630, format: 'jpeg', fit: 'cover' })
+  : undefined;
+
 const formattedDate = publishDate.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
 });
 ---
 
-<Layout title={`${title} — Jack Haek`}>
+<Layout title={`${title} | Jack Haek`} description={description} ogImage={ogImg?.src}>
   <HeaderComponent />
 
   <main class="project-main">
@@ -59,6 +63,13 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
     </div>
 
     <hr class="header-rule" />
+
+    <!-- ── Scroll hint ───────────────────────────────────────── -->
+    <div class="scroll-hint" id="scroll-hint" aria-hidden="true">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"/>
+      </svg>
+    </div>
 
     <!-- ── MDX body ─────────────────────────────────────────── -->
     <div class="project-content" data-reveal>
@@ -611,6 +622,27 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
     }
   }
 
+  /* ── Scroll hint ─────────────────────────────────────────── */
+  .scroll-hint {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-2) 0 var(--space-10);
+    color: var(--primary-container);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: scroll-bounce 1.8s var(--ease-kinetic) infinite;
+    transition: opacity 0.5s ease;
+  }
+
+  .scroll-hint.is-gone {
+    opacity: 0;
+  }
+
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(8px); }
+  }
+
   /* ── Responsive ──────────────────────────────────────────── */
   @media (max-width: 640px) {
     .project-hero {
@@ -622,3 +654,19 @@ const formattedDate = publishDate.toLocaleDateString('en-US', {
     }
   }
 </style>
+
+<script>
+  function initScrollHint() {
+    const hint = document.getElementById('scroll-hint');
+    if (!hint) return;
+    hint.classList.remove('is-gone');
+    window.addEventListener('scroll', () => {
+      hint.classList.add('is-gone');
+    }, { once: true, passive: true });
+  }
+
+  // after-swap: hint is live during the incoming fade transition (navigation)
+  // page-load:  hint is live on a fresh full-page load
+  document.addEventListener('astro:after-swap', initScrollHint);
+  document.addEventListener('astro:page-load', initScrollHint);
+</script>

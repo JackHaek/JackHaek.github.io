@@ -87,6 +87,10 @@
 
   /* ── Elevation — tonal + ambient only, no hard shadows ─── */
   --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.4);
+  --card-shadow:  none;
+
+  /* Image gradient stop — dark surface in dark mode, opaque dark in light */
+  --img-gradient-stop: var(--surface);
 
   /* Nav glassmorphism */
   --glass-bg:     rgba(19, 19, 22, 0.72);
@@ -118,6 +122,8 @@
 
   --glass-bg:   rgba(248, 248, 252, 0.72);
   --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --card-shadow:  0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --img-gradient-stop: rgba(0, 0, 0, 0.72);
 }
 
 /* ── 4. Base / Reset ─────────────────────────────────────── */
