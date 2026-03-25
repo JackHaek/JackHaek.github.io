@@ -17,31 +17,34 @@ All commands are run from the root of the project:
 
 ```
 src/
-├── content.config.ts        # Content collection schema
+├── content.config.ts        # Content collection schemas (single source of truth)
 ├── content/
-│   ├── projects/
-│   │   └── my-project/          # one directory per project
-│   │       ├── my-project.mdx   # same name as the directory
-│   │       ├── hero.jpg         # images co-located here
-│   │       └── screenshot.png
-│   └── blog/
-│       └── my-post/             # one directory per post
-│           ├── my-post.mdx      # same name as the directory
-│           └── hero.jpg
+│   ├── projects/            # One directory per project
+│   │   └── my-project/
+│   │       ├── my-project.mdx
+│   │       └── hero.jpg
+│   ├── blog/                # One directory per post
+│   │   └── my-post/
+│   │       ├── my-post.mdx
+│   │       └── hero.jpg
+│   ├── experience/          # One MDX file per role
+│   │   └── company-name.mdx
+│   └── education/           # One MDX file per institution
+│       └── university.mdx
 ├── pages/
 │   ├── index.astro
-│   ├── projects.astro           # project gallery listing
-│   ├── projects/
-│   │   └── [id].astro           # dynamic project detail page
-│   ├── blog.astro               # blog listing
-│   ├── blog/
-│   │   └── [slug].astro         # dynamic blog post page
 │   ├── about.astro
+│   ├── projects.astro       # Project gallery listing
+│   ├── projects/
+│   │   └── [id].astro       # Dynamic project detail page
+│   ├── blog.astro           # Blog listing
+│   └── blog/
+│       └── [slug].astro     # Dynamic blog post page
 ├── components/              # Shared Astro components
 ├── layouts/
-│   └── Layout.astro
+│   └── Layout.astro         # Root layout (View Transitions, scroll reveal, theme)
 └── styles/
-    └── global.css           # Design system tokens
+    └── global.css           # Design system tokens and global utilities
 ```
 
 The **directory name** becomes the URL slug. The MDX file inside must share the same name as its directory.
@@ -68,10 +71,11 @@ Every project file must start with a YAML frontmatter block. All fields match th
 ---
 title: "PROJECT_NAME"           # required — displayed as the page heading
 category: "Hybrid Architecture" # required — displayed above the title
+filter: "Software"              # required — "Simulation" | "Software" | "Modeling"
 description: "One paragraph description shown in the page header."
 tags: ["C++", "Kubernetes"]     # required — rendered as chips in the header
 image: "./hero.jpg"             # optional — relative to the MDX file
-imageAlt: "Description of image"        # optional
+imageAlt: "Description of image"
 featured: false                 # optional, default false
 publishDate: 2025-06-01         # required
 status: "active"                # required — "active" | "completed" | "archived"
@@ -79,6 +83,8 @@ github: "https://github.com/..." # optional
 demo: "https://..."              # optional
 ---
 ```
+
+> **`filter`** must be exactly one of `Simulation`, `Software`, or `Modeling`. This controls which filter chip shows the project on the projects listing page. The schema enforces this — an invalid value will fail the build.
 
 ### 3. Write the content
 
@@ -263,6 +269,7 @@ The directory name becomes the URL slug: `/blog/my-post`.
 ```yaml
 ---
 title: "Post Title"                          # required — displayed as the page heading
+filter: "Software"                           # required — "Simulation" | "Infrastructure" | "Software"
 description: "One sentence summary."         # required — shown in the blog listing card
 publishDate: 2025-06-01                      # required
 updatedDate: 2025-06-15                      # optional — shown if the post was revised
@@ -273,6 +280,173 @@ draft: false                                 # optional, default false — draft
 ---
 ```
 
+> **`filter`** must be exactly one of `Simulation`, `Infrastructure`, or `Software`. This drives the filter chips on the blog listing page. An invalid value will fail the build.
+
 ### 3. Write the content
 
 Below the frontmatter, write in standard Markdown. The same HTML layout blocks available in project writeups (`section-label`, `callout`, `stat-grid`, `arch-diagram`, `dev-timeline`, `perf-table`, `scan-wrap`) work in blog posts too — see the **HTML Layout Blocks** section above for reference.
+
+---
+
+## Adding Experience Entries
+
+Experience entries appear in the timeline on the About page, sorted by `order` (ascending).
+
+Create a new MDX file directly in `src/content/experience/`:
+
+```
+src/content/experience/company-name.mdx
+```
+
+### Frontmatter
+
+```yaml
+---
+title: "Job Title"             # required
+company: "Company Name"        # required
+dateRange: "2023 – 2025"       # required — displayed as-is (free text)
+tags: ["Python", "Kubernetes"] # required — rendered as chips on the entry
+badge: "Current"               # optional — shown as a highlighted badge next to the company name
+accent: false                  # optional, default false — adds a cyan left accent border to the entry
+order: 1                       # required — controls display order (1 = top)
+---
+```
+
+### Body
+
+Write a short paragraph below the frontmatter describing responsibilities and impact. Keep it to 2–4 sentences — it appears in a condensed timeline layout.
+
+```md
+---
+# frontmatter above...
+---
+
+Designed and deployed real-time simulation infrastructure for LVC training environments,
+integrating live flight telemetry with constructive models across distributed nodes.
+```
+
+---
+
+## Adding Education Entries
+
+Education entries appear in the Education card on the About page, sorted by `order` (ascending).
+
+Create a new MDX file directly in `src/content/education/`:
+
+```
+src/content/education/university.mdx
+```
+
+### Frontmatter
+
+```yaml
+---
+institution: "University Name"                      # required
+degree: "Bachelor's in Computer Science"            # required
+year: "2022"                                        # required — graduation year (free text)
+details:                                            # optional — bullet points shown below the degree
+  - "Concentration: Software Engineering"
+  - "GPA: 3.9"
+order: 1                                            # required — controls display order (1 = first)
+---
+```
+
+The body of an education entry is not rendered — leave it empty.
+
+---
+
+## Design System
+
+All design tokens live in `src/styles/global.css` under `:root`. Use these variables throughout components — never hardcode colors, spacing, or radii.
+
+### Key tokens
+
+| Category      | Token examples                                                                 |
+| :------------ | :----------------------------------------------------------------------------- |
+| Surfaces      | `--surface`, `--surface-container-low`, `--surface-container-high`            |
+| Primary       | `--primary`, `--primary-container`, `--primary-fixed-dim`                     |
+| Text          | `--on-surface`, `--text-secondary`, `--text-muted`                            |
+| Typography    | `--font-display` (Space Grotesk), `--font-body` (Inter)                       |
+| Type scale    | `--display-lg` … `--label-sm` (see global.css for the full scale)             |
+| Spacing       | `--space-1` (0.25rem) … `--space-20` (7rem)                                  |
+| Border radius | `--radius-sm`, `--radius-md` (buttons/chips), `--radius-lg` (cards)          |
+| Motion        | `--ease-kinetic`, `--duration-fast`, `--duration-base`, `--duration-slow`     |
+
+### Light mode
+
+The site ships with a dark default and a `[data-theme="light"]` override block in `global.css`. The theme toggle in the header sets `localStorage('theme')` and flips `document.documentElement.dataset.theme`. `Layout.astro` reads this value on page load (before paint) to prevent flash.
+
+### Global utility classes
+
+| Class           | Description                                            |
+| :-------------- | :----------------------------------------------------- |
+| `.btn-primary`  | Gradient CTA button                                    |
+| `.btn-secondary`| Transparent button with border                         |
+| `.btn-ghost`    | Transparent button, subtle outline, used for secondary actions |
+| `.chip`         | Uppercase label chip (tags, metadata)                  |
+| `.display-lg/md`| Display heading helpers                                |
+| `.label-lg/md/sm` | Uppercase label helpers                              |
+| `.body-lg/md`   | Body text helpers                                      |
+
+---
+
+## Scroll Reveal
+
+Elements animate in (fade + translate up) as they enter the viewport. Add `data-reveal` to any element to opt in:
+
+```html
+<div data-reveal>Fades in when scrolled into view.</div>
+```
+
+Stagger multiple elements using `data-reveal-delay` (milliseconds):
+
+```html
+<h2 data-reveal data-reveal-delay="0">First</h2>
+<p  data-reveal data-reveal-delay="80">Second</p>
+<p  data-reveal data-reveal-delay="160">Third</p>
+```
+
+The IntersectionObserver is initialized globally in `Layout.astro` on `astro:page-load`, so it automatically re-runs after every View Transition navigation. Elements animate once and are then unobserved.
+
+> **Do not add `data-reveal` to elements that already have a View Transition `transition:animate`** — the two systems will fight each other and produce a broken animation.
+
+---
+
+## Contact Modal
+
+The contact form is powered by [EmailJS](https://www.emailjs.com/) and lives in `src/components/ContactModal.astro`. It is rendered inside `src/components/footer.astro`, which means it is available on every page.
+
+Any element with the `data-open-contact` attribute will open the modal when clicked:
+
+```html
+<button data-open-contact>Get in Touch</button>
+```
+
+The EmailJS credentials (`SERVICE_ID`, `TEMPLATE_ID`, `PUBLIC_KEY`) are set directly in `ContactModal.astro`. They are public-key credentials safe to expose in client-side code.
+
+---
+
+## View Transitions
+
+Page navigation uses Astro's `ClientRouter` (View Transitions API). Project and blog listing cards share a `transition:name` with their corresponding detail page headers, enabling a morph animation between the two.
+
+**Writing scripts that work with View Transitions:**
+
+- Listen on `astro:page-load` instead of `DOMContentLoaded` — this fires on both the initial load and every subsequent navigation.
+- For animations driven by `requestAnimationFrame`, cancel the loop on `astro:before-swap` (fires just before the DOM is replaced) and restart it on `astro:page-load`. This prevents stale loops running against a detached DOM.
+- Re-query DOM elements inside the `astro:page-load` handler — never cache them at module top level, as they will be replaced on navigation.
+
+```js
+let rafId: number | null = null;
+
+document.addEventListener('astro:before-swap', () => {
+  if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+});
+
+document.addEventListener('astro:page-load', () => {
+  const el = document.getElementById('my-element'); // fresh query each time
+  if (!el) return;
+  function tick() { /* ... */ rafId = requestAnimationFrame(tick); }
+  rafId = requestAnimationFrame(tick);
+});
+```
