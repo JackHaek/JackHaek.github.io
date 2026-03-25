@@ -271,6 +271,43 @@ ul {
   color: var(--primary-container);
 }
 
+/* ── Scroll reveal ───────────────────────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ghost button — transparent with border */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 33px;
+  background: transparent;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: var(--label-md);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-kinetic),
+              color var(--duration-base) var(--ease-kinetic);
+}
+
+.btn-ghost:hover {
+  border-color: rgba(0, 221, 221, 0.4);
+  color: var(--primary-container);
+}
+
 /* ── Technical chip ──────────────────────────────────────── */
 .chip {
   display: inline-flex;

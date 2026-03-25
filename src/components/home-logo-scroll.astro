@@ -94,10 +94,6 @@ const logos = Object.entries(logoModules).map(([path, mod]) => ({
 </style>
 
 <script>
-  const viewport = document.getElementById('logo-viewport')!;
-  const track    = document.getElementById('logo-track')!;
-  const items    = [...track.querySelectorAll<HTMLElement>('.logo-item')];
-
   const SPEED         = 1.2;  // max px per frame
   const PAUSE_FRAMES  = 55;   // ~0.9 s at 60 fps
   const CENTER_ZONE   = 55;   // px — trigger colour
@@ -105,78 +101,104 @@ const logos = Object.entries(logoModules).map(([path, mod]) => ({
   const SLOWDOWN_ZONE = 140;  // px — begin decelerating
   const EASE          = 0.07; // lerp factor (higher = snappier)
 
-  // Cache each item's centre X within the track — static, computed once
-  const centers = items.map(el => ({
-    el,
-    cx: el.offsetLeft + el.offsetWidth / 2,
-  }));
+  let rafId: number | null = null;
 
-  let pos          = 0;
-  let currentSpeed = 0;
-  let targetSpeed  = SPEED;
-  let countdown    = 0;
-  const paused     = new WeakSet<HTMLElement>();
-
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function tick(): void {
-    const vpCx    = viewport.offsetWidth / 2;
-    const halfLen = track.scrollWidth / 2;
-
-    // Find the item whose centre is closest to the viewport centre
-    let minDist = Infinity;
-    let closest: HTMLElement | null = null;
-
-    for (const { el, cx } of centers) {
-      const dist = Math.abs(cx - pos - vpCx);
-      if (dist < minDist) { minDist = dist; closest = el; }
+  function initLogoScroll() {
+    // Cancel any existing loop before re-initializing (View Transitions safety)
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
     }
 
-    // Apply colour to only the closest item when it's within the zone
-    for (const { el } of centers) {
-      el.classList.toggle(
-        'logo--active',
-        !reduced && el === closest && minDist < CENTER_ZONE
-      );
-    }
+    const viewport = document.getElementById('logo-viewport');
+    const track    = document.getElementById('logo-track');
+    if (!viewport || !track) return;
 
-    if (countdown > 0) {
-      // Pause: hold position, keep speed at zero
-      countdown--;
-      currentSpeed = 0;
-    } else {
-      // Trigger a fresh pause when the closest item reaches the inner zone
-      if (!reduced && closest && minDist < PAUSE_ZONE && !paused.has(closest)) {
-        paused.add(closest);
-        countdown   = PAUSE_FRAMES;
-        currentSpeed = 0;
-      } else {
-        // Decelerate smoothly as an un-paused logo approaches centre,
-        // then accelerate freely once it has been paused (in the WeakSet)
-        if (!reduced && closest && minDist < SLOWDOWN_ZONE && !paused.has(closest)) {
-          const t = minDist / SLOWDOWN_ZONE;
-          targetSpeed = SPEED * t * t * (3 - 2 * t); // smoothstep 0 → SPEED
-        } else {
-          targetSpeed = SPEED;
-        }
+    const items = [...track.querySelectorAll<HTMLElement>('.logo-item')];
 
-        // Lerp toward target — provides ease-out after pause and smooths
-        // any abrupt speed changes
-        currentSpeed += (targetSpeed - currentSpeed) * EASE;
+    // Cache each item's centre X within the track — static, computed once
+    const centers = items.map(el => ({
+      el,
+      cx: el.offsetLeft + el.offsetWidth / 2,
+    }));
+
+    let pos          = 0;
+    let currentSpeed = 0;
+    let targetSpeed  = SPEED;
+    let countdown    = 0;
+    const paused     = new WeakSet<HTMLElement>();
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function tick(): void {
+      const vpCx    = viewport.offsetWidth / 2;
+      const halfLen = track.scrollWidth / 2;
+
+      // Find the item whose centre is closest to the viewport centre
+      let minDist = Infinity;
+      let closest: HTMLElement | null = null;
+
+      for (const { el, cx } of centers) {
+        const dist = Math.abs(cx - pos - vpCx);
+        if (dist < minDist) { minDist = dist; closest = el; }
       }
 
-      pos += currentSpeed;
-      if (pos >= halfLen) pos -= halfLen;
-      track.style.transform = `translateX(${-pos}px)`;
+      // Apply colour to only the closest item when it's within the zone
+      for (const { el } of centers) {
+        el.classList.toggle(
+          'logo--active',
+          !reduced && el === closest && minDist < CENTER_ZONE
+        );
+      }
+
+      if (countdown > 0) {
+        // Pause: hold position, keep speed at zero
+        countdown--;
+        currentSpeed = 0;
+      } else {
+        // Trigger a fresh pause when the closest item reaches the inner zone
+        if (!reduced && closest && minDist < PAUSE_ZONE && !paused.has(closest)) {
+          paused.add(closest);
+          countdown    = PAUSE_FRAMES;
+          currentSpeed = 0;
+        } else {
+          // Decelerate smoothly as an un-paused logo approaches centre,
+          // then accelerate freely once it has been paused (in the WeakSet)
+          if (!reduced && closest && minDist < SLOWDOWN_ZONE && !paused.has(closest)) {
+            const t = minDist / SLOWDOWN_ZONE;
+            targetSpeed = SPEED * t * t * (3 - 2 * t); // smoothstep 0 → SPEED
+          } else {
+            targetSpeed = SPEED;
+          }
+
+          // Lerp toward target — provides ease-out after pause and smooths
+          // any abrupt speed changes
+          currentSpeed += (targetSpeed - currentSpeed) * EASE;
+        }
+
+        pos += currentSpeed;
+        if (pos >= halfLen) pos -= halfLen;
+        track.style.transform = `translateX(${-pos}px)`;
+      }
+
+      // Release the paused flag once the item is well past the centre zone
+      for (const { el, cx } of centers) {
+        if (Math.abs(cx - pos - vpCx) > CENTER_ZONE * 3) paused.delete(el);
+      }
+
+      rafId = requestAnimationFrame(tick);
     }
 
-    // Release the paused flag once the item is well past the centre zone
-    for (const { el, cx } of centers) {
-      if (Math.abs(cx - pos - vpCx) > CENTER_ZONE * 3) paused.delete(el);
-    }
-
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
   }
 
-  requestAnimationFrame(tick);
+  // Cancel the loop when navigating away so it doesn't run against a detached DOM
+  document.addEventListener('astro:before-swap', () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  });
+
+  document.addEventListener('astro:page-load', initLogoScroll);
 </script>

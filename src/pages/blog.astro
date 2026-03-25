@@ -44,7 +44,7 @@ function formatDate(d: Date): string {
 
     <!-- ── Page Header ────────────────────────────────────────── -->
     <div class="page-header">
-      <div class="page-header-text">
+      <div class="page-header-text" data-reveal>
         <h1 class="page-title">FIELD_NOTES</h1>
         <p class="page-subtitle">
           Weekly notes on things I'm reading, learning at work, or thinking
@@ -52,7 +52,7 @@ function formatDate(d: Date): string {
         </p>
       </div>
 
-      <div class="search-row">
+      <div class="search-row" data-reveal data-reveal-delay="80">
         <div class="search-wrap">
           <img src={iconSearch} alt="" class="search-icon" width="18" height="18" />
           <input
@@ -279,7 +279,7 @@ function formatDate(d: Date): string {
   }
 
   .search-input::placeholder {
-    color: #6b7280;
+    color: var(--text-muted);
   }
 
   .search-input:focus {
@@ -298,7 +298,7 @@ function formatDate(d: Date): string {
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-6);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     border: none;
     background: var(--surface-container-high);
     color: var(--text-secondary);
@@ -314,7 +314,7 @@ function formatDate(d: Date): string {
 
   .filter-chip--active {
     background: var(--primary-container);
-    color: #006d6d;
+    color: var(--on-primary-container);
   }
 
   .filter-chip:not(.filter-chip--active):hover {

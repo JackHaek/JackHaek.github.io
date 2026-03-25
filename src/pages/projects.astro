@@ -41,7 +41,7 @@ function cardProps(i: number) {
 
     <!-- ── Page Header ────────────────────────────────────────── -->
     <div class="page-header">
-      <div class="page-header-left">
+      <div class="page-header-left" data-reveal>
         <h1 class="page-title">
           ENGINEERING<br />ARCHIVE
         </h1>
@@ -51,7 +51,7 @@ function cardProps(i: number) {
         </p>
       </div>
 
-      <div class="filter-chips" role="group" aria-label="Filter projects">
+      <div class="filter-chips" role="group" aria-label="Filter projects" data-reveal data-reveal-delay="80">
         <button class="filter-chip filter-chip--active" data-chip="all">All Work</button>
         <button class="filter-chip" data-chip="Simulation">Simulation</button>
         <button class="filter-chip" data-chip="Software">Software</button>
@@ -86,7 +86,7 @@ function cardProps(i: number) {
     </div>
 
     <!-- ── CTA Section ────────────────────────────────────────── -->
-    <div class="cta-section">
+    <div class="cta-section" data-reveal>
       <div class="cta-bg-text" aria-hidden="true">0101</div>
       <div class="cta-content">
         <h2 class="cta-title">
@@ -233,7 +233,7 @@ function cardProps(i: number) {
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-6);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     border: none;
     background: var(--surface-container-high);
     color: var(--text-secondary);
@@ -249,7 +249,7 @@ function cardProps(i: number) {
 
   .filter-chip--active {
     background: var(--primary-container);
-    color: #006d6d;
+    color: var(--on-primary-container);
   }
 
   .filter-chip:not(.filter-chip--active):hover {

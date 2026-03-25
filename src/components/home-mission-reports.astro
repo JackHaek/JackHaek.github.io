@@ -15,7 +15,7 @@ const titleSizes = ['lg', 'sm', 'sm'] as const;
 <section class="mission-reports" id="projects">
   <div class="mission-inner">
 
-    <div class="section-header">
+    <div class="section-header" data-reveal>
       <h2 class="section-title">MISSION_REPORTS</h2>
       <div class="section-divider"></div>
     </div>
@@ -27,6 +27,8 @@ const titleSizes = ['lg', 'sm', 'sm'] as const;
           href={`/projects/${entry.id.split('/')[0]}`}
           class:list={['card-link', gridClasses[i]]}
           aria-label={`View project: ${entry.data.title}`}
+          data-reveal
+          data-reveal-delay={i * 80}
         >
           <ProjectCard
             category={entry.data.category}

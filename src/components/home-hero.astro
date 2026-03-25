@@ -7,24 +7,24 @@ import ProfessionalPhoto from "../assets/professional1.png";
   <div class="hero-inner">
 
     <div class="hero-content">
-      <div class="hero-badge">
+      <div class="hero-badge" data-reveal data-reveal-delay="0">
         <span class="badge-dot"></span>
         <span class="badge-label">LVC Engineering // Active</span>
       </div>
 
-      <h1 class="hero-heading">
+      <h1 class="hero-heading" data-reveal data-reveal-delay="80">
         <span>JACK <em>HAEK</em>.</span>
         <span class="muted">HYBRID</span>
         <span>REALITY.</span>
       </h1>
 
-      <p class="hero-description">
+      <p class="hero-description" data-reveal data-reveal-delay="160">
         Modeling and Simulation Engineer specializing in
         <strong>Live-Virtual-Constructive (LVC) environments</strong>.
         Focus on blending live flight telemetry with simulated assets.
       </p>
 
-      <div class="hero-actions">
+      <div class="hero-actions" data-reveal data-reveal-delay="240">
         <a href="/projects" class="btn-primary">View Projects</a>
         <a href="#stack" class="btn-ghost">Technical Specs</a>
       </div>
@@ -32,7 +32,7 @@ import ProfessionalPhoto from "../assets/professional1.png";
 
     <div class="hero-photo-wrap">
       <div class="hero-glow"></div>
-      <div class="hero-photo-card">
+      <div class="hero-photo-card" data-reveal data-reveal-delay="120">
         <Image src={ProfessionalPhoto} alt="Jack Haek" class="hero-portrait" ></Image>
         <span class="photo-ref">Ref: LVC_7702</span>
       </div>
@@ -169,30 +169,6 @@ import ProfessionalPhoto from "../assets/professional1.png";
     gap: var(--space-6);
     align-items: center;
     padding-top: var(--space-4);
-  }
-
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 17px 33px;
-    background: transparent;
-    border: 1px solid #3a4a49;
-    border-radius: var(--radius-md);
-    color: var(--primary);
-    font-family: var(--font-display);
-    font-size: var(--label-md);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: border-color var(--duration-base) var(--ease-kinetic),
-                color var(--duration-base) var(--ease-kinetic);
-  }
-
-  .btn-ghost:hover {
-    border-color: rgba(0, 221, 221, 0.4);
-    color: var(--primary-container);
   }
 
   /* Photo */

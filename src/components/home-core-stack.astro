@@ -7,9 +7,9 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
 
     <!-- Left: content -->
     <div class="stack-content">
-      <h2 class="section-title">CORE_STACK</h2>
+      <h2 class="section-title" data-reveal>CORE_STACK</h2>
 
-      <p class="stack-description">
+      <p class="stack-description" data-reveal data-reveal-delay="80">
         The tools I reach for daily.
         <strong>Containerized infrastructure</strong>, low-latency simulation
         protocols, and hardware-in-the-loop verification pipelines for
@@ -17,19 +17,19 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
       </p>
 
       <div class="tech-grid">
-        <div class="tech-card">
+        <div class="tech-card" data-reveal data-reveal-delay="160">
           <span class="tech-category">Distributed</span>
           <span class="tech-name">Kubernetes / Docker</span>
         </div>
-        <div class="tech-card">
+        <div class="tech-card" data-reveal data-reveal-delay="220">
           <span class="tech-category">Simulation</span>
           <span class="tech-name">DIS / C++</span>
         </div>
-        <div class="tech-card">
+        <div class="tech-card" data-reveal data-reveal-delay="280">
           <span class="tech-category">Real-Time</span>
           <span class="tech-name">SIL / LVC Integration</span>
         </div>
-        <div class="tech-card">
+        <div class="tech-card" data-reveal data-reveal-delay="340">
           <span class="tech-category">Telemetry</span>
           <span class="tech-name">Python / GRPC</span>
         </div>
@@ -37,7 +37,7 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
     </div>
 
     <!-- Right: decorative visual -->
-    <div class="stack-visual" aria-hidden="true">
+    <div class="stack-visual" aria-hidden="true" data-reveal data-reveal-delay="100">
       <div class="ring ring--inner"></div>
       <div class="stack-icon-wrap">
         <img src={iconUrl} alt="" width="60" height="58" class="stack-icon" />

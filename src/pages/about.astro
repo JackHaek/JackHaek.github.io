@@ -28,7 +28,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
         <!-- Photo -->
         <div class="photo-col">
           <div class="photo-glow"></div>
-          <div class="photo-frame">
+          <div class="photo-frame" data-reveal data-reveal-delay="60">
             <Image src={professionalPhoto} alt="Jack Haek" class="portrait"></Image>
             <div class="portrait-desat" aria-hidden="true"></div>
           </div>
@@ -36,11 +36,11 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
 
         <!-- Bio -->
         <div class="bio-col">
-          <p class="role-label">Modeling and Simulation Engineer</p>
+          <p class="role-label" data-reveal data-reveal-delay="0">Modeling and Simulation Engineer</p>
 
-          <h1 class="bio-name">JACK HAEK.</h1>
+          <h1 class="bio-name" data-reveal data-reveal-delay="80">JACK HAEK.</h1>
 
-          <div class="bio-body">
+          <div class="bio-body" data-reveal data-reveal-delay="160">
             <p>
               Modeling and Simulation Engineer working on Live-Virtual-Constructive
               (LVC) environments — blending live flight telemetry, virtual simulations,
@@ -52,7 +52,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
             </p>
           </div>
 
-          <div class="bio-actions">
+          <div class="bio-actions" data-reveal data-reveal-delay="240">
             <a href="/JackHaekCV.pdf" download class="btn-primary">Download CV</a>
             <button id="contact-btn" data-open-contact class="btn-ghost">Get in Touch</button>
           </div>
@@ -63,25 +63,27 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
 
     <!-- ── Experience Timeline ────────────────────────────────── -->
     <section class="experience-section">
-      <div class="section-header section-header--left">
+      <div class="section-header section-header--left" data-reveal>
         <h2 class="section-title">EXPERIENCE_LOG</h2>
         <div class="divider-line"></div>
       </div>
 
       <div class="timeline">
-        {experienceEntries.map(async (entry) => {
+        {experienceEntries.map(async (entry, i) => {
           const { Content } = await render(entry);
           return (
-            <TimelineEntry
-              title={entry.data.title}
-              company={entry.data.company}
-              dateRange={entry.data.dateRange}
-              badge={entry.data.badge}
-              tags={entry.data.tags}
-              accent={entry.data.accent}
-            >
-              <Content />
-            </TimelineEntry>
+            <div data-reveal data-reveal-delay={i * 80}>
+              <TimelineEntry
+                title={entry.data.title}
+                company={entry.data.company}
+                dateRange={entry.data.dateRange}
+                badge={entry.data.badge}
+                tags={entry.data.tags}
+                accent={entry.data.accent}
+              >
+                <Content />
+              </TimelineEntry>
+            </div>
           );
         })}
       </div>
@@ -89,7 +91,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
 
     <!-- ── Technical Stack ────────────────────────────────────── -->
     <section class="stack-section">
-      <div class="section-header section-header--right">
+      <div class="section-header section-header--right" data-reveal>
         <div class="divider-line"></div>
         <h2 class="section-title">TECHNICAL_STACK</h2>
       </div>
@@ -97,7 +99,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
       <div class="skills-grid">
 
         <!-- Card 1: Key Domains (wide) -->
-        <div class="skill-card skill-card--wide skill-card--edu">
+        <div class="skill-card skill-card--wide skill-card--edu" data-reveal data-reveal-delay="0">
           <h3 class="skill-title">Key Domains</h3>
           <p class="skill-desc">
             Simulation, infrastructure, and aerospace — the areas
@@ -124,7 +126,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
         </div>
 
         <!-- Card 2: Core Performance — Currently Working With -->
-        <div class="skill-card skill-card--perf">
+        <div class="skill-card skill-card--perf" data-reveal data-reveal-delay="60">
           <h3 class="skill-title">Core Performance</h3>
           <ul class="perf-list">
             <li class="perf-item">
@@ -147,7 +149,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
         </div>
 
         <!-- Card 3: Reliability — Years of Experience by Domain -->
-        <div class="skill-card skill-card--rel">
+        <div class="skill-card skill-card--rel" data-reveal data-reveal-delay="120">
           <h3 class="skill-title">Reliability</h3>
           <ul class="perf-list">
             <li class="perf-item">
@@ -170,7 +172,7 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
         </div>
 
         <!-- Card 4: Education (wide) -->
-        <div class="skill-card skill-card--wide-right skill-card--accent-border">
+        <div class="skill-card skill-card--wide-right skill-card--accent-border" data-reveal data-reveal-delay="180">
           <h3 class="skill-title">Education</h3>
           <div class="edu-entries">
             {educationEntries.map((entry, i) => (
@@ -345,30 +347,6 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
     padding-top: var(--space-8);
   }
 
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 17px 33px;
-    background: transparent;
-    border: 1px solid rgba(58, 74, 73, 0.3);
-    border-radius: var(--radius-md);
-    color: var(--primary);
-    font-family: var(--font-display);
-    font-size: var(--label-md);
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: border-color var(--duration-base) var(--ease-kinetic),
-                color var(--duration-base) var(--ease-kinetic);
-  }
-
-  .btn-ghost:hover {
-    border-color: rgba(0, 221, 221, 0.4);
-    color: var(--primary-container);
-  }
-
   /* ── Timeline ────────────────────────────────────────────── */
   .experience-section {
     display: flex;
@@ -379,6 +357,25 @@ const educationEntries = allEducation.sort((a, b) => a.data.order - b.data.order
     display: flex;
     flex-direction: column;
     gap: var(--space-10);
+    position: relative;
+    padding-left: var(--space-8);
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--surface-container-high) 8%,
+      var(--surface-container-high) 92%,
+      transparent
+    );
+    pointer-events: none;
   }
 
   /* ── Skills bento grid ───────────────────────────────────── */
