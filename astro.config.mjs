@@ -6,6 +6,7 @@ import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://jackhaek.dev',
   integrations: [
     mdx({
       remarkPlugins: [remarkMath],
