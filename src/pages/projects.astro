@@ -1,11 +1,11 @@
 ---
-import HeaderComponent from '../components/header.astro';
-import Layout from '../layouts/Layout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import FooterComponent from '../components/footer.astro';
+import HeaderComponent from '@/components/header.astro';
+import Layout from '@/layouts/Layout.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import FooterComponent from '@/components/footer.astro';
 import { getCollection } from 'astro:content';
-
-const imgArrow = "https://www.figma.com/api/mcp/asset/f62f259a-7813-4e82-8576-a286a98a6037";
+import { Image } from 'astro:assets';
+import imgArrow from "@/assets/solar--arrow-right-up-linear.svg"
 
 const projects = (await getCollection('projects'))
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
@@ -98,7 +98,7 @@ function cardProps(i: number) {
         </p>
         <button data-open-contact class="cta-btn">
           GET IN TOUCH
-          <img src={imgArrow} alt="" width="16" height="16" class="cta-btn-icon" />
+          <Image src={imgArrow} alt="" width={16} height={16} class="cta-btn-icon"/>
         </button>
       </div>
     </div>

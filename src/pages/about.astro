@@ -1,12 +1,12 @@
 ---
-import HeaderComponent from '../components/header.astro';
-import Layout from '../layouts/Layout.astro';
-import FooterComponent from '../components/footer.astro';
+import HeaderComponent from '@/components/header.astro';
+import Layout from '@/layouts/Layout.astro';
+import FooterComponent from '@/components/footer.astro';
 import { Image } from "astro:assets";
-import professionalPhoto from "../assets/professional2.png";
+import professionalPhoto from "@/assets/professional2.png";
 import { getCollection, render } from 'astro:content';
-import TimelineEntry from '../components/TimelineEntry.astro';
-import EducationEntry from '../components/EducationEntry.astro';
+import TimelineEntry from '@/components/TimelineEntry.astro';
+import EducationEntry from '@/components/EducationEntry.astro';
 
 const allExperience = await getCollection('experience');
 const experienceEntries = allExperience.sort((a, b) => a.data.order - b.data.order);
