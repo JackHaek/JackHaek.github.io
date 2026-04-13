@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import ProjectCard from './ProjectCard.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
 
 const allProjects = await getCollection('projects', ({ data }) => data.featured);
 

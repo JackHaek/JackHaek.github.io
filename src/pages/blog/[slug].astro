@@ -1,9 +1,9 @@
 ---
 import { getCollection, render } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
-import Layout from '../../layouts/Layout.astro';
-import HeaderComponent from '../../components/header.astro';
-import FooterComponent from '../../components/footer.astro';
+import Layout from '@/layouts/Layout.astro';
+import HeaderComponent from '@/components/header.astro';
+import FooterComponent from '@/components/footer.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');

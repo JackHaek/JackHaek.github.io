@@ -1,5 +1,6 @@
 ---
-const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-7946969440b5";
+import { Image } from "astro:assets";
+import iconUrl from "@/assets/solar--share-circle-linear.svg";
 ---
 
 <section class="core-stack" id="stack">
@@ -40,7 +41,7 @@ const iconUrl = "https://www.figma.com/api/mcp/asset/fdc462ba-fa4d-49ce-9610-794
     <div class="stack-visual" aria-hidden="true" data-reveal data-reveal-delay="100">
       <div class="ring ring--inner"></div>
       <div class="stack-icon-wrap">
-        <img src={iconUrl} alt="" width="60" height="58" class="stack-icon" />
+        <Image src={iconUrl} alt="" width={60} height={60} class="stack-icon" />
         <span class="stack-icon-label">LVC Mesh Control</span>
       </div>
     </div>
